@@ -26,7 +26,9 @@
  */
 package de.javagl.jgltf.viewer;
 
-import java.awt.image.BufferedImage;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -53,22 +55,44 @@ class PixelDatas
      * @param imageData The image data
      * @return The {@link PixelData}
      */
-    static PixelData create(ByteBuffer imageData)
+    static Bitmap create(ByteBuffer imageData)
     {
+
+        /*
         BufferedImage textureImage = ImageUtils.readAsBufferedImage(imageData);
         if (textureImage == null)
         {
             logger.warning("Could not read image from image data");
             return null;
         }
-            
-        ByteBuffer pixelDataARGB = 
-            ImageUtils.getImagePixelsARGB(textureImage, false);
+
+        ByteBuffer pixelDataARGB =
+                ImageUtils.getImagePixelsARGB(textureImage, false);
         ByteBuffer pixelDataRGBA =
-            ImageUtils.swizzleARGBtoRGBA(pixelDataARGB);
+                ImageUtils.swizzleARGBtoRGBA(pixelDataARGB);
         int width = textureImage.getWidth();
         int height = textureImage.getHeight();
-        return new DefaultPixelData(width, height, pixelDataRGBA);
+        //return new DefaultPixelData(width, height, pixelDataRGBA);
+        */
+
+        //TODO check alpha support here??
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
+        options.inMutable = true;
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+        //Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);
+        byte[] arr = new byte[imageData.remaining()];
+        imageData.get(arr);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(arr,0, arr.length, options);
+        bitmap.setHasAlpha(true); //?
+
+        arr = new byte[0b0]; //cleanup memory?
+
+        if (bitmap == null) {
+            throw new RuntimeException("couldnt load bitmap");
+        }
+        return bitmap;
     }
     
     /**

@@ -26,6 +26,8 @@
  */
 package de.javagl.jgltf.viewer;
 
+import android.view.SurfaceView;
+
 import java.util.List;
 
 import de.javagl.jgltf.model.CameraModel;
@@ -66,7 +68,7 @@ public interface GltfViewer<C>
      * 
      * @return The rendering component of this viewer
      */
-    C getRenderComponent();
+    SurfaceView getRenderComponent();
     
     /**
      * Returns the width of the render component

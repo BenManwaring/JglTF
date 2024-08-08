@@ -26,6 +26,8 @@
  */
 package de.javagl.jgltf.viewer;
 
+import android.graphics.Bitmap;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -212,8 +214,8 @@ public interface GlContext
      * @param type The type
      * @return The GL texture
      */
-    int createGlTexture(ByteBuffer pixelData, 
-        int internalFormat, int width, int height, int format, int type);
+    int createGlTexture(Bitmap pixelData,
+                        int internalFormat, int width, int height, int format, int type);
 
     /**
      * Set the parameters for the given GL texture

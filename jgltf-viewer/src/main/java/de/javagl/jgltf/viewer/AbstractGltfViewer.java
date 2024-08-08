@@ -26,6 +26,8 @@
  */
 package de.javagl.jgltf.viewer;
 
+import android.view.SurfaceView;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -84,8 +86,7 @@ public abstract class AbstractGltfViewer<C> implements GltfViewer<C>
     /**
      * A supplier for the aspect ratio. This will provide the aspect ratio
      * of the rendering window. (If this was <code>null</code>,
-     * then the aspect ratio of the glTF camera would be
-     * used, but this would hardly ever match the actual aspect
+     * then the aspect ratio of the glTF camera would beboskic s
      * ratio of the rendering component...)
      */
     private final DoubleSupplier aspectRatioSupplier = () -> 
@@ -132,26 +133,26 @@ public abstract class AbstractGltfViewer<C> implements GltfViewer<C>
      * glTF animations
      */
     private final Map<GltfModel, List<Animation>> modelAnimations;
-    
+
     /**
      * Default constructor
      */
     protected AbstractGltfViewer()
     {
         this.beforeRenderTasks = Collections.synchronizedList(
-            new ArrayList<Runnable>());
-        this.renderedGltfModels = 
-            new LinkedHashMap<GltfModel, RenderedGltfModel>();
+                new ArrayList<Runnable>());
+        this.renderedGltfModels =
+                new LinkedHashMap<GltfModel, RenderedGltfModel>();
         this.gltfModels = new ArrayList<GltfModel>();
-        this.animationManager = 
-            GltfAnimations.createAnimationManager(AnimationPolicy.LOOP);
+        this.animationManager =
+                GltfAnimations.createAnimationManager(AnimationPolicy.LOOP);
         this.animationManager.addAnimationManagerListener(a ->
         {
-            triggerRendering();
+            //triggerRendering();
         });
         this.animationRunner = new AnimationRunner(animationManager);
         this.modelAnimations = new LinkedHashMap<GltfModel, List<Animation>>();
-        
+
         setAnimationsRunning(true);
     }
     
@@ -175,7 +176,7 @@ public abstract class AbstractGltfViewer<C> implements GltfViewer<C>
     }
     
     @Override
-    public abstract C getRenderComponent();
+    public abstract SurfaceView getRenderComponent();
     
     /**
      * Returns the {@link GlContext} of this viewer
@@ -189,7 +190,10 @@ public abstract class AbstractGltfViewer<C> implements GltfViewer<C>
     {
         Objects.requireNonNull(gltfModel, "The gltfModel may not be null");
         gltfModels.add(gltfModel);
-        addBeforeRenderTask(() -> createRenderedGltf(gltfModel));
+
+        //addBeforeRenderTask(() -> createRenderedGltf(gltfModel));
+        createRenderedGltf(gltfModel);
+
         triggerRendering();
         
         // If no external camera has been defined, set the current camera

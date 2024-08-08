@@ -370,7 +370,7 @@ class MaterialModelHandler
             values.put("hasOcclusionTexture", 0);
             
             // TODO Should this really be 1.0?
-            values.put("occlusionStrength", 0.0); 
+            values.put("occlusionStrength", 0.0);
         }
 
         TextureInfo emissiveTextureInfo = 
@@ -392,12 +392,10 @@ class MaterialModelHandler
             material.getEmissiveFactor(),
             material.defaultEmissiveFactor());
         values.put("emissiveFactor", emissiveFactor);
-        
-        
-        float lightPosition[] = { -800,500,500 };
+
+        float lightPosition[] = {-10f,1f,50f}; //TODO lightPosition
         values.put("lightPosition", lightPosition);
-        
-        
+
         materialModel.setValues(values);
         
         return materialModel;
@@ -426,8 +424,8 @@ class MaterialModelHandler
     {
         DefaultShaderModel shaderModel = new DefaultShaderModel(
             uriString, shaderType);
-        try (InputStream inputStream = 
-            MaterialModelHandler.class.getResourceAsStream("/" + resourceName))
+        try (InputStream inputStream =
+            MaterialModelHandler.class.getResourceAsStream("/assets/" + resourceName))
         {
             byte[] data = IO.readStream(inputStream);
             String basicShaderString = new String(data);
@@ -541,9 +539,9 @@ class MaterialModelHandler
                 "jointMat", GltfConstants.GL_FLOAT_MAT4, 
                 materialStructure.getNumJoints(), "JOINTMATRIX");
         }
-        
+
         // TODO Preliminary uniform for a single point light
-        addUniformParameters(techniqueModel, "u_lightPosition", 
+        addUniformParameters(techniqueModel, "u_lightPosition",
             "lightPosition", GltfConstants.GL_FLOAT_VEC3, 1, null);
         
     }

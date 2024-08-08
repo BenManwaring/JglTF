@@ -29,7 +29,7 @@ package de.javagl.jgltf.model.v1;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import javax.imageio.ImageReader;
+//import javax.imageio.ImageReader;
 
 import de.javagl.jgltf.impl.v1.Buffer;
 import de.javagl.jgltf.impl.v1.BufferView;
@@ -37,7 +37,7 @@ import de.javagl.jgltf.impl.v1.GlTFProperty;
 import de.javagl.jgltf.impl.v1.Image;
 import de.javagl.jgltf.impl.v1.Shader;
 import de.javagl.jgltf.model.GltfException;
-import de.javagl.jgltf.model.io.ImageReaders;
+//import de.javagl.jgltf.model.io.ImageReaders;
 
 /**
  * Utility methods related to the binary glTF extension of glTF 1.0
@@ -126,6 +126,8 @@ public class BinaryGltfV1
     public static void setBinaryGltfImageProperties(
         Image image, ByteBuffer imageData)
     {
+
+        /*
         ImageReader imageReader = null;
         try
         {
@@ -153,6 +155,8 @@ public class BinaryGltfV1
                 imageReader.dispose();
             }
         }
+
+        */
     }
     
 

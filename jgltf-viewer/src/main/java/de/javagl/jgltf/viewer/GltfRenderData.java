@@ -26,6 +26,10 @@
  */
 package de.javagl.jgltf.viewer;
 
+import android.graphics.Bitmap;
+
+import java.io.InputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -229,19 +233,27 @@ class GltfRenderData
         int format = GltfConstants.GL_RGBA;
         int type = GltfConstants.GL_UNSIGNED_BYTE;
         
-        ImageModel imageModel = textureModel.getImageModel();
-        ByteBuffer imageData = imageModel.getImageData();
-        PixelData pixelData = PixelDatas.create(imageData);
+        ImageModel imageModel = textureModel.getImageModel(); //OK
+        ByteBuffer imageData = imageModel.getImageData(); //OK, We got all RAW data here
+
+        //refactor from piXelData to Bitmap
+        //PixelData pixelData = PixelDatas.create(imageData);
+        Bitmap pixelData = PixelDatas.create(imageData);
         if (pixelData == null)
         {
             logger.warning("Could not extract pixel data from image");
-            pixelData = PixelDatas.createErrorPixelData();
+            //pixelData = PixelDatas.createErrorPixelData();
         }
         int width = pixelData.getWidth();
         int height = pixelData.getHeight();
-        ByteBuffer pixelsRGBA = pixelData.getPixelsRGBA();
+        //ByteBuffer pixelsRGBA = pixelData.getPixelsRGBA();
+
+        ///----------- from here //TODO
+        //ByteBuffer
+
+
         int glTexture = glContext.createGlTexture(
-            pixelsRGBA, internalFormat, width, height, format, type);
+                pixelData, internalFormat, width, height, format, type);
 
         int minFilter = Optionals.of(
             textureModel.getMinFilter(), 

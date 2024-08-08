@@ -170,10 +170,9 @@ public final class GltfAssetReader
             }
             else if (majorVersion == 2)
             {
-                de.javagl.jgltf.impl.v2.GlTF gltfV2 = 
-                    gltfReader.getAsGltfV2();
-                gltfAsset = new GltfAssetV2(gltfV2, 
-                    rawGltfData.getBinaryData());
+                de.javagl.jgltf.impl.v2.GlTF gltfV2 = gltfReader.getAsGltfV2();
+                gltfAsset = new GltfAssetV2(gltfV2,  rawGltfData.getBinaryData());
+                int i=0;
             }
             else
             {

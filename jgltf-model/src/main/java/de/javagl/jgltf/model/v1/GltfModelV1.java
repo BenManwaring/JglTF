@@ -111,6 +111,8 @@ import de.javagl.jgltf.model.impl.DefaultNodeModel;
 import de.javagl.jgltf.model.impl.DefaultSceneModel;
 import de.javagl.jgltf.model.impl.DefaultSkinModel;
 import de.javagl.jgltf.model.impl.DefaultTextureModel;
+import de.javagl.jgltf.model.io.Buffers;
+import de.javagl.jgltf.model.io.IO;
 import de.javagl.jgltf.model.io.v1.GltfAssetV1;
 import de.javagl.jgltf.model.v1.gl.DefaultModels;
 import de.javagl.jgltf.model.v1.gl.GltfDefaults;
@@ -124,25 +126,25 @@ public final class GltfModelV1 implements GltfModel
     /**
      * The logger used in this class
      */
-    private static final Logger logger = 
-        Logger.getLogger(GltfModelV1.class.getName());
+    private static final Logger logger =
+            Logger.getLogger(GltfModelV1.class.getName());
 
     /**
      * The {@link GltfAssetV1} of this model
      */
     private final GltfAssetV1 gltfAsset;
-    
+
     /**
-     * The {@link GlTF} of the {@link GltfAssetV1}    
+     * The {@link GlTF} of the {@link GltfAssetV1}
      */
     private final GlTF gltf;
-    
+
     /**
      * The binary data that is associated with this model in the case
      * that the glTF was a binary glTF
      */
     private final ByteBuffer binaryData;
-    
+
     /**
      * The {@link IndexMappingSet}
      */
@@ -159,7 +161,7 @@ public final class GltfModelV1 implements GltfModel
      * the {@link Animation} instances
      */
     private final List<DefaultAnimationModel> animationModels;
-    
+
     /**
      * The {@link BufferModel} instances that have been created from
      * the {@link Buffer} instances
@@ -171,7 +173,7 @@ public final class GltfModelV1 implements GltfModel
      * the {@link Buffer} instances
      */
     private final List<DefaultBufferViewModel> bufferViewModels;
-    
+
     /**
      * The {@link CameraModel} instances that have been created from
      * the {@link Camera} references of {@link Node} instances
@@ -189,7 +191,7 @@ public final class GltfModelV1 implements GltfModel
      * the {@link Material} instances
      */
     private final List<DefaultMaterialModel> materialModels;
-    
+
     /**
      * The {@link MeshModel} instances that have been created from
      * the {@link Mesh} instances
@@ -231,28 +233,37 @@ public final class GltfModelV1 implements GltfModel
      * the {@link Program} instances
      */
     private final List<DefaultProgramModel> programModels;
-    
+
     /**
      * The {@link TechniqueModel} instances that have been created from
      * the {@link Technique} instances
      */
     private final List<DefaultTechniqueModel> techniqueModels;
-    
+
 
     /**
      * Creates a new model for the given glTF
-     * 
+     *
      * @param gltfAsset The {@link GltfAssetV1}
      */
     public GltfModelV1(GltfAssetV1 gltfAsset)
     {
-        this.gltfAsset = Objects.requireNonNull(gltfAsset, 
-            "The gltf may not be null");
+        this.gltfAsset = Objects.requireNonNull(gltfAsset,
+                "The gltf may not be null");
         this.gltf = gltfAsset.getGltf();
-        this.binaryData = gltfAsset.getBinaryData();
-        
+
+        ByteBuffer binaryData = gltfAsset.getBinaryData();
+        if (binaryData != null && binaryData.capacity() > 0)
+        {
+            this.binaryData = binaryData;
+        }
+        else
+        {
+            this.binaryData = null;
+        }
+
         this.indexMappingSet = IndexMappingSets.create(gltf);
-        
+
         this.accessorModels = new ArrayList<DefaultAccessorModel>();
         this.animationModels = new ArrayList<DefaultAnimationModel>();
         this.bufferModels = new ArrayList<DefaultBufferModel>();
@@ -268,7 +279,7 @@ public final class GltfModelV1 implements GltfModel
         this.shaderModels = new ArrayList<DefaultShaderModel>();
         this.programModels = new ArrayList<DefaultProgramModel>();
         this.techniqueModels = new ArrayList<DefaultTechniqueModel>();
-        
+
         createAccessorModels();
         createAnimationModels();
         createBufferModels();
@@ -283,14 +294,14 @@ public final class GltfModelV1 implements GltfModel
         createShaderModels();
         createProgramModels();
         createTechniqueModels();
-        
+
         initBufferModels();
         initBufferViewModels();
-        
+
         initAccessorModels();
-        
+
         assignBufferViewByteStrides();
-        
+
         initAnimationModels();
         initImageModels();
         initMaterialModels();
@@ -302,15 +313,15 @@ public final class GltfModelV1 implements GltfModel
         initShaderModels();
         initProgramModels();
         initTechniqueModels();
-        
+
         instantiateCameraModels();
     }
-    
+
     /**
      * Returns the {@link BufferModel} for the {@link Buffer} with the given ID.
-     * If the given ID is not valid, then a warning will be printed and 
+     * If the given ID is not valid, then a warning will be printed and
      * <code>null</code> will be returned.
-     *  
+     *
      * @param bufferId The {@link Buffer} ID
      * @return The {@link BufferModel}
      */
@@ -318,12 +329,12 @@ public final class GltfModelV1 implements GltfModel
     {
         return get("buffers", bufferId, bufferModels);
     }
-    
+
     /**
      * Returns the {@link ShaderModel} for the {@link Shader} with the given ID.
-     * If the given ID is not valid, then a warning will be printed and 
+     * If the given ID is not valid, then a warning will be printed and
      * <code>null</code> will be returned.
-     *  
+     *
      * @param shaderId The {@link Shader} ID
      * @return The {@link ShaderModel}
      */
@@ -334,9 +345,9 @@ public final class GltfModelV1 implements GltfModel
 
     /**
      * Returns the {@link ImageModel} for the {@link Image} with the given ID.
-     * If the given ID is not valid, then a warning will be printed and 
+     * If the given ID is not valid, then a warning will be printed and
      * <code>null</code> will be returned.
-     *  
+     *
      * @param imageId The {@link Image} ID
      * @return The {@link ImageModel}
      */
@@ -344,14 +355,14 @@ public final class GltfModelV1 implements GltfModel
     {
         return get("images", imageId, imageModels);
     }
-    
+
     /**
      * Returns the {@link TextureModel} for the {@link Texture} with the given
-     * ID. If the given ID is not valid, then a warning will be printed and 
+     * ID. If the given ID is not valid, then a warning will be printed and
      * <code>null</code> will be returned.<br>
      * <br>
      * This is only used for supporting the legacy technique-based rendering.
-     *  
+     *
      * @param textureId The {@link Texture} ID
      * @return The {@link TextureModel}
      */
@@ -359,13 +370,13 @@ public final class GltfModelV1 implements GltfModel
     {
         return get("textures", textureId, textureModels);
     }
-    
+
     /**
-     * Returns the {@link AccessorModel} for the {@link Accessor} with the 
+     * Returns the {@link AccessorModel} for the {@link Accessor} with the
      * given ID.
-     * If the given ID is not valid, then a warning will be printed and 
+     * If the given ID is not valid, then a warning will be printed and
      * <code>null</code> will be returned.
-     *  
+     *
      * @param accessorId The {@link Accessor} ID
      * @return The {@link AccessorModel}
      */
@@ -373,13 +384,13 @@ public final class GltfModelV1 implements GltfModel
     {
         return get("accessors", accessorId, accessorModels);
     }
-    
+
     /**
-     * Returns the {@link BufferViewModel} for the {@link BufferView} with the 
+     * Returns the {@link BufferViewModel} for the {@link BufferView} with the
      * given ID.
-     * If the given ID is not valid, then a warning will be printed and 
+     * If the given ID is not valid, then a warning will be printed and
      * <code>null</code> will be returned.
-     *  
+     *
      * @param bufferViewId The {@link BufferView} ID
      * @return The {@link BufferViewModel}
      */
@@ -387,7 +398,7 @@ public final class GltfModelV1 implements GltfModel
     {
         return get("bufferViews", bufferViewId, bufferViewModels);
     }
-    
+
     /**
      * Create the {@link AccessorModel} instances
      */
@@ -403,7 +414,7 @@ public final class GltfModelV1 implements GltfModel
 
     /**
      * Create a {@link DefaultAccessorModel} for the given {@link Accessor}
-     * 
+     *
      * @param accessor The {@link Accessor}
      * @return The {@link AccessorModel}
      */
@@ -417,11 +428,11 @@ public final class GltfModelV1 implements GltfModel
         if (byteStride == null)
         {
             byteStride = elementType.getNumComponents() *
-                Accessors.getNumBytesForAccessorComponentType(
-                    componentType);
+                    Accessors.getNumBytesForAccessorComponentType(
+                            componentType);
         }
         DefaultAccessorModel accessorModel = new DefaultAccessorModel(
-            componentType, count, elementType);
+                componentType, count, elementType);
         accessorModel.setByteOffset(byteOffset);
         accessorModel.setByteStride(byteStride);
         return accessorModel;
@@ -438,7 +449,7 @@ public final class GltfModelV1 implements GltfModel
             animationModels.add(new DefaultAnimationModel());
         }
     }
-    
+
     /**
      * Create the {@link BufferModel} instances
      */
@@ -452,30 +463,30 @@ public final class GltfModelV1 implements GltfModel
             bufferModels.add(bufferModel);
         }
     }
-    
+
     /**
      * Create the {@link BufferViewModel} instances
      */
     private void createBufferViewModels()
     {
-        Map<String, BufferView> bufferViews = 
-            Optionals.of(gltf.getBufferViews());
+        Map<String, BufferView> bufferViews =
+                Optionals.of(gltf.getBufferViews());
         for (BufferView bufferView : bufferViews.values())
         {
-            DefaultBufferViewModel bufferViewModel = 
-                createBufferViewModel(bufferView);
+            DefaultBufferViewModel bufferViewModel =
+                    createBufferViewModel(bufferView);
             bufferViewModels.add(bufferViewModel);
         }
     }
 
     /**
      * Create a {@link DefaultBufferViewModel} for the given {@link BufferView}
-     * 
+     *
      * @param bufferView The {@link BufferView}
      * @return The {@link BufferViewModel}
      */
     private static DefaultBufferViewModel createBufferViewModel(
-        BufferView bufferView)
+            BufferView bufferView)
     {
         int byteOffset = bufferView.getByteOffset();
         Integer byteLength = bufferView.getByteLength();
@@ -485,30 +496,30 @@ public final class GltfModelV1 implements GltfModel
             byteLength = 0;
         }
         Integer target = bufferView.getTarget();
-        DefaultBufferViewModel bufferViewModel = 
-            new DefaultBufferViewModel(target);
+        DefaultBufferViewModel bufferViewModel =
+                new DefaultBufferViewModel(target);
         bufferViewModel.setByteOffset(byteOffset);
         bufferViewModel.setByteLength(byteLength);
         return bufferViewModel;
     }
-    
+
     /**
      * Create the {@link ImageModel} instances
      */
     private void createImageModels()
     {
-        Map<String, Image> images = 
-            Optionals.of(gltf.getImages());
+        Map<String, Image> images =
+                Optionals.of(gltf.getImages());
         for (Image image : images.values())
         {
-            DefaultImageModel imageModel = 
-                new DefaultImageModel(null, null);
+            DefaultImageModel imageModel =
+                    new DefaultImageModel(null, null);
             String uri = image.getUri();
             imageModel.setUri(uri);
             imageModels.add(imageModel);
         }
     }
-    
+
     /**
      * Create the {@link MaterialModel} instances
      */
@@ -520,7 +531,7 @@ public final class GltfModelV1 implements GltfModel
             materialModels.add(new DefaultMaterialModel());
         }
     }
-    
+
     /**
      * Create the {@link MeshModel} instances
      */
@@ -556,7 +567,7 @@ public final class GltfModelV1 implements GltfModel
             sceneModels.add(new DefaultSceneModel());
         }
     }
-    
+
     /**
      * Create the {@link SkinModel} instances
      */
@@ -583,21 +594,21 @@ public final class GltfModelV1 implements GltfModel
             Texture texture = entry.getValue();
             String samplerId = texture.getSampler();
             Sampler sampler = samplers.get(samplerId);
-            
+
             int magFilter = Optionals.of(
-                sampler.getMagFilter(), sampler.defaultMagFilter());
+                    sampler.getMagFilter(), sampler.defaultMagFilter());
             int minFilter = Optionals.of(
-                sampler.getMinFilter(), sampler.defaultMinFilter());
+                    sampler.getMinFilter(), sampler.defaultMinFilter());
             int wrapS = Optionals.of(
-                sampler.getWrapS(), sampler.defaultWrapS());
+                    sampler.getWrapS(), sampler.defaultWrapS());
             int wrapT = Optionals.of(
-                sampler.getWrapT(), sampler.defaultWrapT());
-            
+                    sampler.getWrapT(), sampler.defaultWrapT());
+
             textureModels.add(new DefaultTextureModel(
-                magFilter, minFilter, wrapS, wrapT));
+                    magFilter, minFilter, wrapS, wrapT));
         }
     }
-    
+
     /**
      * Create the {@link ShaderModel} instances
      */
@@ -613,12 +624,12 @@ public final class GltfModelV1 implements GltfModel
             {
                 shaderType = ShaderType.VERTEX_SHADER;
             }
-            else 
+            else
             {
                 shaderType = ShaderType.FRAGMENT_SHADER;
             }
             DefaultShaderModel shaderModel =
-                new DefaultShaderModel(shader.getUri(), shaderType);
+                    new DefaultShaderModel(shader.getUri(), shaderType);
             shaderModels.add(shaderModel);
         }
     }
@@ -634,7 +645,7 @@ public final class GltfModelV1 implements GltfModel
             programModels.add(new DefaultProgramModel());
         }
     }
-    
+
     /**
      * Create the {@link TechniqueModel} instances
      */
@@ -646,7 +657,7 @@ public final class GltfModelV1 implements GltfModel
             techniqueModels.add(new DefaultTechniqueModel());
         }
     }
-    
+
 
     /**
      * Initialize the {@link AccessorModel} instances
@@ -659,10 +670,10 @@ public final class GltfModelV1 implements GltfModel
             String accessorId = entry.getKey();
             Accessor accessor = entry.getValue();
             String bufferViewId = accessor.getBufferView();
-            BufferViewModel bufferViewModel = 
-                get("bufferViews", bufferViewId, bufferViewModels);
+            BufferViewModel bufferViewModel =
+                    get("bufferViews", bufferViewId, bufferViewModels);
             DefaultAccessorModel accessorModel =
-                get("accessors", accessorId, accessorModels);
+                    get("accessors", accessorId, accessorModels);
             accessorModel.setName(accessor.getName());
             accessorModel.setBufferViewModel(bufferViewModel);
         }
@@ -679,11 +690,11 @@ public final class GltfModelV1 implements GltfModel
             String animationId = entry.getKey();
             Animation animation = entry.getValue();
             DefaultAnimationModel animationModel =
-                get("animations", animationId, animationModels);
+                    get("animations", animationId, animationModels);
             animationModel.setName(animation.getName());
 
-            List<AnimationChannel> channels = 
-                Optionals.of(animation.getChannels());
+            List<AnimationChannel> channels =
+                    Optionals.of(animation.getChannels());
             for (AnimationChannel animationChannel : channels)
             {
                 Channel channel = createChannel(animation, animationChannel);
@@ -691,7 +702,7 @@ public final class GltfModelV1 implements GltfModel
             }
         }
     }
-    
+
     /**
      * Initialize the {@link ImageModel} instances
      */
@@ -703,93 +714,102 @@ public final class GltfModelV1 implements GltfModel
             String imageId = entry.getKey();
             Image image = entry.getValue();
             DefaultImageModel imageModel =
-                get("images", imageId, imageModels);
+                    get("images", imageId, imageModels);
             imageModel.setName(image.getName());
-            
+
             if (BinaryGltfV1.hasBinaryGltfExtension(image))
             {
-                String bufferViewId = 
-                    BinaryGltfV1.getBinaryGltfBufferViewId(image);
-                BufferViewModel bufferViewModel = 
-                    getBufferViewModelById(bufferViewId);
+                String bufferViewId =
+                        BinaryGltfV1.getBinaryGltfBufferViewId(image);
+                BufferViewModel bufferViewModel =
+                        getBufferViewModelById(bufferViewId);
                 imageModel.setBufferViewModel(bufferViewModel);
             }
             else
             {
                 String uri = image.getUri();
-                ByteBuffer imageData = gltfAsset.getReferenceData(uri);
-                imageModel.setImageData(imageData);
+                if (IO.isDataUriString(uri))
+                {
+                    byte data[] = IO.readDataUri(uri);
+                    ByteBuffer imageData = Buffers.create(data);
+                    imageModel.setImageData(imageData);
+                }
+                else
+                {
+                    ByteBuffer imageData = gltfAsset.getReferenceData(uri);
+                    imageModel.setImageData(imageData);
+                }
             }
         }
     }
-    
+
     /**
      * Create the {@link Channel} object for the given animation and animation
      * channel
-     * 
+     *
      * @param animation The {@link Animation}
      * @param animationChannel The {@link AnimationChannel}
      * @return The {@link Channel}
      */
     private Channel createChannel(
-        Animation animation, AnimationChannel animationChannel)
+            Animation animation, AnimationChannel animationChannel)
     {
-        Map<String, String> parameters = 
-            Optionals.of(animation.getParameters());
-        Map<String, AnimationSampler> samplers = 
-            Optionals.of(animation.getSamplers());
+        Map<String, String> parameters =
+                Optionals.of(animation.getParameters());
+        Map<String, AnimationSampler> samplers =
+                Optionals.of(animation.getSamplers());
 
         String samplerId = animationChannel.getSampler();
         AnimationSampler animationSampler = samplers.get(samplerId);
-        
+
         String inputParameterId = animationSampler.getInput();
         String inputAccessorId = parameters.get(inputParameterId);
         if (inputAccessorId == null)
         {
-            // This was valid for a short time, when glTF 2.0 was still 
-            // called glTF 1.1. The check here is not perfectly reliable, 
-            // but there should be a decreasing number of glTF 1.0 models 
+            // This was valid for a short time, when glTF 2.0 was still
+            // called glTF 1.1. The check here is not perfectly reliable,
+            // but there should be a decreasing number of glTF 1.0 models
             // out there, and even fewer glTF 1.1 ones.
             logger.warning(
-                "Assuming " + inputParameterId + " to be an accessor ID");
+                    "Assuming " + inputParameterId + " to be an accessor ID");
             inputAccessorId = inputParameterId;
         }
-        DefaultAccessorModel inputAccessorModel = 
-            get("accessors", inputAccessorId, accessorModels);
-        
+        DefaultAccessorModel inputAccessorModel =
+                get("accessors", inputAccessorId, accessorModels);
+
         String outputParameterId = animationSampler.getOutput();
         String outputAccessorId = parameters.get(outputParameterId);
         if (outputAccessorId == null)
         {
-            // This was valid for a short time, when glTF 2.0 was still 
-            // called glTF 1.1. The check here is not perfectly reliable, 
-            // but there should be a decreasing number of glTF 1.0 models 
+            // This was valid for a short time, when glTF 2.0 was still
+            // called glTF 1.1. The check here is not perfectly reliable,
+            // but there should be a decreasing number of glTF 1.0 models
             // out there, and even fewer glTF 1.1 ones.
             logger.warning(
-                "Assuming " + outputParameterId + " to be an accessor ID");
+                    "Assuming " + outputParameterId + " to be an accessor ID");
             outputAccessorId = outputParameterId;
         }
-        DefaultAccessorModel outputAccessorModel = 
-            get("accessors", outputAccessorId, accessorModels);
-        
-        String interpolationString = 
-            animationSampler.getInterpolation();
-        Interpolation interpolation = 
-            interpolationString == null ? Interpolation.LINEAR :
-            Interpolation.valueOf(interpolationString);
-        
+        DefaultAccessorModel outputAccessorModel =
+                get("accessors", outputAccessorId, accessorModels);
+
+        String interpolationString =
+                animationSampler.getInterpolation();
+        Interpolation interpolation =
+                interpolationString == null ? Interpolation.LINEAR :
+                        Interpolation.valueOf(interpolationString);
+
         AnimationModel.Sampler sampler = new DefaultSampler(
-            inputAccessorModel, interpolation, outputAccessorModel);
-        
-        AnimationChannelTarget animationChannelTarget = 
-            animationChannel.getTarget();
+                inputAccessorModel, interpolation, outputAccessorModel);
+
+        AnimationChannelTarget animationChannelTarget =
+                animationChannel.getTarget();
         String nodeId = animationChannelTarget.getId();
         String path = animationChannelTarget.getPath();
-        
+
         NodeModel nodeModel = get("nodes", nodeId, nodeModels);
-        
-        AnimationModel.Channel channel = 
-            new DefaultChannel(sampler, nodeModel, path);
+
+        AnimationModel.Channel channel =
+                new DefaultChannel(sampler, nodeModel, path);
         return channel;
     }
 
@@ -803,16 +823,16 @@ public final class GltfModelV1 implements GltfModel
         {
             String bufferId = entry.getKey();
             Buffer buffer = entry.getValue();
-            DefaultBufferModel bufferModel = 
-                get("buffers", bufferId, bufferModels);
+            DefaultBufferModel bufferModel =
+                    get("buffers", bufferId, bufferModels);
             bufferModel.setName(buffer.getName());
-            
+
             if (BinaryGltfV1.isBinaryGltfBufferId(bufferId))
             {
                 if (binaryData == null)
                 {
                     logger.severe("The glTF contains a buffer with the binary"
-                        + " buffer ID, but no binary data has been given");
+                            + " buffer ID, but no binary data has been given");
                     continue;
                 }
                 bufferModel.setBufferData(binaryData);
@@ -820,47 +840,56 @@ public final class GltfModelV1 implements GltfModel
             else
             {
                 String uri = buffer.getUri();
-                ByteBuffer bufferData = gltfAsset.getReferenceData(uri);
-                bufferModel.setBufferData(bufferData);
+                if (IO.isDataUriString(uri))
+                {
+                    byte data[] = IO.readDataUri(uri);
+                    ByteBuffer bufferData = Buffers.create(data);
+                    bufferModel.setBufferData(bufferData);
+                }
+                else
+                {
+                    ByteBuffer bufferData = gltfAsset.getReferenceData(uri);
+                    bufferModel.setBufferData(bufferData);
+                }
             }
         }
     }
-    
-    
+
+
     /**
      * Initialize the {@link BufferViewModel} instances
      */
     private void initBufferViewModels()
     {
-        Map<String, BufferView> bufferViews = 
-            Optionals.of(gltf.getBufferViews());
+        Map<String, BufferView> bufferViews =
+                Optionals.of(gltf.getBufferViews());
         for (Entry<String, BufferView> entry : bufferViews.entrySet())
         {
             String bufferViewId = entry.getKey();
             BufferView bufferView = entry.getValue();
-            
+
             String bufferId = bufferView.getBuffer();
-            BufferModel bufferModel = 
-                get("buffers", bufferId, bufferModels);
-            DefaultBufferViewModel bufferViewModel = 
-                get("bufferViews", bufferViewId, bufferViewModels);
+            BufferModel bufferModel =
+                    get("buffers", bufferId, bufferModels);
+            DefaultBufferViewModel bufferViewModel =
+                    get("bufferViews", bufferViewId, bufferViewModels);
             bufferViewModel.setName(bufferView.getName());
             bufferViewModel.setBufferModel(bufferModel);
         }
     }
-    
+
     /**
      * Compute all {@link AccessorModel} instances that refer to the
      * given {@link BufferViewModel}
-     * 
+     *
      * @param bufferViewModel The {@link BufferViewModel}
      * @return The list of {@link AccessorModel} instances
      */
     private List<DefaultAccessorModel> computeAccessorModelsOf(
-        BufferViewModel bufferViewModel)
+            BufferViewModel bufferViewModel)
     {
-        List<DefaultAccessorModel> result = 
-            new ArrayList<DefaultAccessorModel>();
+        List<DefaultAccessorModel> result =
+                new ArrayList<DefaultAccessorModel>();
         for (DefaultAccessorModel accessorModel : accessorModels)
         {
             BufferViewModel b = accessorModel.getBufferViewModel();
@@ -871,17 +900,17 @@ public final class GltfModelV1 implements GltfModel
         }
         return result;
     }
-    
+
     /**
      * Computes the {@link AccessorModel#getByteStride() byte stride} of
      * the given {@link AccessorModel} instances. If the given instances
      * do not have the same byte stride, then a warning will be printed.
-     * 
+     *
      * @param accessorModels The {@link AccessorModel} instances
      * @return The common byte stride
      */
     private static int computeCommonByteStride(
-        Iterable<? extends AccessorModel> accessorModels)
+            Iterable<? extends AccessorModel> accessorModels)
     {
         int commonByteStride = -1;
         for (AccessorModel accessorModel : accessorModels)
@@ -896,111 +925,111 @@ public final class GltfModelV1 implements GltfModel
                 if (commonByteStride != byteStride)
                 {
                     logger.warning("The accessor models do not have the "
-                        + "same byte stride: " + commonByteStride 
-                        + " and " + byteStride);
+                            + "same byte stride: " + commonByteStride
+                            + " and " + byteStride);
                 }
             }
         }
         return commonByteStride;
     }
-    
+
 
     /**
      * Set the {@link BufferViewModel#getByteStride() byte strides} of all
-     * {@link BufferViewModel} instances, depending on the 
+     * {@link BufferViewModel} instances, depending on the
      * {@link AccessorModel} instances that refer to them
      */
     private void assignBufferViewByteStrides()
     {
         for (DefaultBufferViewModel bufferViewModel : bufferViewModels)
         {
-            List<DefaultAccessorModel> accessorModelsOfBufferView = 
-                computeAccessorModelsOf(bufferViewModel);
+            List<DefaultAccessorModel> accessorModelsOfBufferView =
+                    computeAccessorModelsOf(bufferViewModel);
             if (accessorModelsOfBufferView.size() > 1)
             {
-                int byteStride = 
-                    computeCommonByteStride(accessorModelsOfBufferView);
+                int byteStride =
+                        computeCommonByteStride(accessorModelsOfBufferView);
                 bufferViewModel.setByteStride(byteStride);
             }
         }
     }
-    
+
     /**
      * Initialize the {@link MeshModel} instances
      */
     private void initMeshModels()
     {
-        Map<String, Mesh> meshes = 
-            Optionals.of(gltf.getMeshes());
+        Map<String, Mesh> meshes =
+                Optionals.of(gltf.getMeshes());
         for (Entry<String, Mesh> entry : meshes.entrySet())
         {
             String meshId = entry.getKey();
             Mesh mesh = entry.getValue();
-            List<MeshPrimitive> primitives = 
-                Optionals.of(mesh.getPrimitives());
-            DefaultMeshModel meshModel = 
-                get("meshes", meshId, meshModels);
+            List<MeshPrimitive> primitives =
+                    Optionals.of(mesh.getPrimitives());
+            DefaultMeshModel meshModel =
+                    get("meshes", meshId, meshModels);
             meshModel.setName(mesh.getName());
 
             for (MeshPrimitive meshPrimitive : primitives)
             {
-                MeshPrimitiveModel meshPrimitiveModel = 
-                    createMeshPrimitiveModel(meshPrimitive);
+                MeshPrimitiveModel meshPrimitiveModel =
+                        createMeshPrimitiveModel(meshPrimitive);
                 meshModel.addMeshPrimitiveModel(meshPrimitiveModel);
             }
         }
     }
-    
+
     /**
      * Create a {@link MeshPrimitiveModel} for the given {@link MeshPrimitive}
-     * 
+     *
      * @param meshPrimitive The {@link MeshPrimitive}
      * @return The {@link MeshPrimitiveModel}
      */
     private DefaultMeshPrimitiveModel createMeshPrimitiveModel(
-        MeshPrimitive meshPrimitive)
+            MeshPrimitive meshPrimitive)
     {
         Integer mode = meshPrimitive.getMode();
         if (mode == null)
         {
             mode = meshPrimitive.defaultMode();
         }
-        DefaultMeshPrimitiveModel meshPrimitiveModel = 
-            new DefaultMeshPrimitiveModel(mode);
-        
+        DefaultMeshPrimitiveModel meshPrimitiveModel =
+                new DefaultMeshPrimitiveModel(mode);
+
         String indicesId = meshPrimitive.getIndices();
         if (indicesId != null)
         {
-            AccessorModel indices = 
-                get("accessors", indicesId, accessorModels);
+            AccessorModel indices =
+                    get("accessors", indicesId, accessorModels);
             meshPrimitiveModel.setIndices(indices);
         }
-        Map<String, String> attributes = 
-            Optionals.of(meshPrimitive.getAttributes());
+        Map<String, String> attributes =
+                Optionals.of(meshPrimitive.getAttributes());
         for (Entry<String, String> entry : attributes.entrySet())
         {
             String attributeName = entry.getKey();
             String attributeId = entry.getValue();
-            
-            AccessorModel attribute = 
-                get("accessors", attributeId, accessorModels);
+
+            AccessorModel attribute =
+                    get("accessors", attributeId, accessorModels);
             meshPrimitiveModel.putAttribute(attributeName, attribute);
         }
-        
+
         String materialId = meshPrimitive.getMaterial();
         if (materialId == null ||
-            GltfDefaults.isDefaultMaterialId(materialId))
+                GltfDefaults.isDefaultMaterialId(materialId))
         {
             meshPrimitiveModel.setMaterialModel(
-                DefaultModels.getDefaultMaterialModel());
+                    DefaultModels.getDefaultMaterialModel());
         }
         else
         {
-            MaterialModel materialModel = 
-                get("materials", materialId, materialModels);
+            MaterialModel materialModel =
+                    get("materials", materialId, materialModels);
             meshPrimitiveModel.setMaterialModel(materialModel);
         }
-        
+
         return meshPrimitiveModel;
     }
 
@@ -1014,10 +1043,10 @@ public final class GltfModelV1 implements GltfModel
         {
             String nodeId = entry.getKey();
             Node node = entry.getValue();
-            
+
             DefaultNodeModel nodeModel = get("nodes", nodeId, nodeModels);
             nodeModel.setName(node.getName());
-            
+
             List<String> childIds = Optionals.of(node.getChildren());
             for (String childId : childIds)
             {
@@ -1036,22 +1065,22 @@ public final class GltfModelV1 implements GltfModel
                 SkinModel skinModel = get("skins", skinId, skinModels);
                 nodeModel.setSkinModel(skinModel);
             }
-            
+
             float matrix[] = node.getMatrix();
             float translation[] = node.getTranslation();
             float rotation[] = node.getRotation();
             float scale[] = node.getScale();
             nodeModel.setMatrix(
-                matrix == null ? null : matrix.clone());
+                    matrix == null ? null : matrix.clone());
             nodeModel.setTranslation(
-                translation == null ? null : translation.clone());
+                    translation == null ? null : translation.clone());
             nodeModel.setRotation(
-                rotation == null ? null : rotation.clone());
+                    rotation == null ? null : rotation.clone());
             nodeModel.setScale(
-                scale == null ? null : scale.clone());
+                    scale == null ? null : scale.clone());
         }
     }
-    
+
     /**
      * Initialize the {@link SceneModel} instances
      */
@@ -1064,9 +1093,9 @@ public final class GltfModelV1 implements GltfModel
             Scene scene = entry.getValue();
 
             DefaultSceneModel sceneModel =
-                get("scenes", sceneId, sceneModels);
+                    get("scenes", sceneId, sceneModels);
             sceneModel.setName(scene.getName());
-            
+
             List<String> nodes = Optionals.of(scene.getNodes());
             for (String nodeId : nodes)
             {
@@ -1075,11 +1104,11 @@ public final class GltfModelV1 implements GltfModel
             }
         }
     }
-    
+
     /**
      * Compute the mapping from joint names to the ID of the {@link Node} with
      * the respective {@link Node#getJointName() joint name}
-     * 
+     *
      * @param gltf The {@link GlTF}
      * @return The mapping
      */
@@ -1097,8 +1126,8 @@ public final class GltfModelV1 implements GltfModel
                 if (oldNodeId != null)
                 {
                     logger.warning("Joint name " + node.getJointName()
-                        + " is mapped to nodes with IDs " + nodeId + " and "
-                        + oldNodeId);
+                            + " is mapped to nodes with IDs " + nodeId + " and "
+                            + oldNodeId);
                 }
             }
         }
@@ -1110,8 +1139,8 @@ public final class GltfModelV1 implements GltfModel
      */
     private void initSkinModels()
     {
-        Map<String, String> jointNameToNodeIdMap = 
-            computeJointNameToNodeIdMap(gltf);
+        Map<String, String> jointNameToNodeIdMap =
+                computeJointNameToNodeIdMap(gltf);
         Map<String, Skin> skins = Optionals.of(gltf.getSkins());
         for (Entry<String, Skin> entry : skins.entrySet())
         {
@@ -1119,7 +1148,7 @@ public final class GltfModelV1 implements GltfModel
             Skin skin = entry.getValue();
             DefaultSkinModel skinModel = get("skins", skinId, skinModels);
             skinModel.setName(skin.getName());
-            
+
             List<String> jointNames = skin.getJointNames();
             for (String jointName : jointNames)
             {
@@ -1127,14 +1156,14 @@ public final class GltfModelV1 implements GltfModel
                 NodeModel nodeModel = get("nodes", nodeId, nodeModels);
                 skinModel.addJoint(nodeModel);
             }
-            
+
             String inverseBindMatricesId = skin.getInverseBindMatrices();
             DefaultAccessorModel inverseBindMatrices =
-                get("accessors", inverseBindMatricesId, accessorModels);
+                    get("accessors", inverseBindMatricesId, accessorModels);
             skinModel.setInverseBindMatrices(inverseBindMatrices);
         }
     }
-    
+
     /**
      * Initialize the {@link TextureModel} instances
      */
@@ -1145,17 +1174,17 @@ public final class GltfModelV1 implements GltfModel
         {
             String textureId = entry.getKey();
             Texture texture = entry.getValue();
-            DefaultTextureModel textureModel = 
-                get("textures", textureId, textureModels);
+            DefaultTextureModel textureModel =
+                    get("textures", textureId, textureModels);
             textureModel.setName(texture.getName());
-            
+
             String imageId = texture.getSource();
-            DefaultImageModel imageModel = 
-                get("images", imageId, imageModels);
+            DefaultImageModel imageModel =
+                    get("images", imageId, imageModels);
             textureModel.setImageModel(imageModel);
         }
     }
-    
+
     /**
      * Initialize the {@link ShaderModel} instances
      */
@@ -1166,28 +1195,36 @@ public final class GltfModelV1 implements GltfModel
         {
             String shaderId = entry.getKey();
             Shader shader = entry.getValue();
-            DefaultShaderModel shaderModel = 
-                get("shaders", shaderId, shaderModels);
+            DefaultShaderModel shaderModel =
+                    get("shaders", shaderId, shaderModels);
             shaderModel.setName(shader.getName());
-            
+
             if (BinaryGltfV1.hasBinaryGltfExtension(shader))
             {
-                String bufferViewId = 
-                    BinaryGltfV1.getBinaryGltfBufferViewId(shader);
-                BufferViewModel bufferViewModel = 
-                    getBufferViewModelById(bufferViewId);
+                String bufferViewId =
+                        BinaryGltfV1.getBinaryGltfBufferViewId(shader);
+                BufferViewModel bufferViewModel =
+                        getBufferViewModelById(bufferViewId);
                 shaderModel.setShaderData(bufferViewModel.getBufferViewData());
             }
             else
             {
                 String uri = shader.getUri();
-                ByteBuffer shaderData = gltfAsset.getReferenceData(uri);
-                shaderModel.setShaderData(shaderData);
+                if (IO.isDataUriString(uri))
+                {
+                    byte data[] = IO.readDataUri(uri);
+                    ByteBuffer shaderData = Buffers.create(data);
+                    shaderModel.setShaderData(shaderData);
+                }
+                else
+                {
+                    ByteBuffer shaderData = gltfAsset.getReferenceData(uri);
+                    shaderModel.setShaderData(shaderData);
+                }
             }
-            
         }
     }
-    
+
     /**
      * Initialize the {@link ProgramModel} instances
      */
@@ -1198,41 +1235,41 @@ public final class GltfModelV1 implements GltfModel
         {
             String programId = entry.getKey();
             Program program = entry.getValue();
-            DefaultProgramModel programModel = 
-                get("programs", programId, programModels);
+            DefaultProgramModel programModel =
+                    get("programs", programId, programModels);
             programModel.setName(program.getName());
-            
+
             String vertexShaderId = program.getVertexShader();
             DefaultShaderModel vertexShaderModel =
-                get("shaders", vertexShaderId, shaderModels);
+                    get("shaders", vertexShaderId, shaderModels);
             programModel.setVertexShaderModel(vertexShaderModel);
-            
+
             String fragmentShaderId = program.getFragmentShader();
             DefaultShaderModel fragmentShaderModel =
-                get("shaders", fragmentShaderId, shaderModels);
+                    get("shaders", fragmentShaderId, shaderModels);
             programModel.setFragmentShaderModel(fragmentShaderModel);
         }
     }
 
-    
+
     /**
-     * Add all {@link TechniqueParametersModel} instances for the 
+     * Add all {@link TechniqueParametersModel} instances for the
      * attributes of the given {@link Technique} to the given
      * {@link TechniqueModel}
-     * 
+     *
      * @param technique The {@link Technique}
      * @param techniqueModel The {@link TechniqueModel}
      */
     private void addParameters(Technique technique,
-        DefaultTechniqueModel techniqueModel)
+                               DefaultTechniqueModel techniqueModel)
     {
-        Map<String, TechniqueParameters> parameters = 
-            Optionals.of(technique.getParameters());
+        Map<String, TechniqueParameters> parameters =
+                Optionals.of(technique.getParameters());
         for (Entry<String, TechniqueParameters> entry : parameters.entrySet())
         {
             String parameterName = entry.getKey();
             TechniqueParameters parameter = entry.getValue();
-            
+
             int type = parameter.getType();
             int count = Optionals.of(parameter.getCount(), 1);
             String semantic = parameter.getSemantic();
@@ -1243,27 +1280,27 @@ public final class GltfModelV1 implements GltfModel
             {
                 nodeModel = get("nodes", nodeId, nodeModels);
             }
-            
+
             TechniqueParametersModel techniqueParametersModel =
-                new DefaultTechniqueParametersModel(
-                    type, count, semantic, value, nodeModel);
+                    new DefaultTechniqueParametersModel(
+                            type, count, semantic, value, nodeModel);
             techniqueModel.addParameter(
-                parameterName, techniqueParametersModel);
+                    parameterName, techniqueParametersModel);
         }
     }
 
     /**
      * Add all attribute entries of the given {@link Technique} to the given
      * {@link TechniqueModel}
-     * 
+     *
      * @param technique The {@link Technique}
      * @param techniqueModel The {@link TechniqueModel}
      */
     private static void addAttributes(Technique technique,
-        DefaultTechniqueModel techniqueModel)
+                                      DefaultTechniqueModel techniqueModel)
     {
-        Map<String, String> attributes = 
-            Optionals.of(technique.getAttributes());
+        Map<String, String> attributes =
+                Optionals.of(technique.getAttributes());
         for (Entry<String, String> entry : attributes.entrySet())
         {
             String attributeName = entry.getKey();
@@ -1275,15 +1312,15 @@ public final class GltfModelV1 implements GltfModel
     /**
      * Add all uniform entries of the given {@link Technique} to the given
      * {@link TechniqueModel}
-     * 
+     *
      * @param technique The {@link Technique}
      * @param techniqueModel The {@link TechniqueModel}
      */
     private static void addUniforms(Technique technique,
-        DefaultTechniqueModel techniqueModel)
+                                    DefaultTechniqueModel techniqueModel)
     {
-        Map<String, String> uniforms = 
-            Optionals.of(technique.getUniforms());
+        Map<String, String> uniforms =
+                Optionals.of(technique.getUniforms());
         for (Entry<String, String> entry : uniforms.entrySet())
         {
             String uniformName = entry.getKey();
@@ -1291,8 +1328,8 @@ public final class GltfModelV1 implements GltfModel
             techniqueModel.addUniform(uniformName, parameterName);
         }
     }
-    
-    
+
+
     /**
      * Initialize the {@link TechniqueModel} instances
      */
@@ -1303,35 +1340,35 @@ public final class GltfModelV1 implements GltfModel
         {
             String techniqueId = entry.getKey();
             Technique technique = entry.getValue();
-            DefaultTechniqueModel techniqueModel = 
-                get("techniques", techniqueId, techniqueModels);
+            DefaultTechniqueModel techniqueModel =
+                    get("techniques", techniqueId, techniqueModels);
             techniqueModel.setName(technique.getName());
-            
+
             String programId = technique.getProgram();
-            DefaultProgramModel programModel = 
-                get("programs", programId, programModels);
+            DefaultProgramModel programModel =
+                    get("programs", programId, programModels);
             techniqueModel.setProgramModel(programModel);
-            
+
             addParameters(technique, techniqueModel);
             addAttributes(technique, techniqueModel);
             addUniforms(technique, techniqueModel);
-            
-            List<Integer> enable = 
-                Techniques.obtainEnabledStates(technique);
-            TechniqueStatesFunctions functions = 
-                Techniques.obtainTechniqueStatesFunctions(technique);
+
+            List<Integer> enable =
+                    Techniques.obtainEnabledStates(technique);
+            TechniqueStatesFunctions functions =
+                    Techniques.obtainTechniqueStatesFunctions(technique);
 
             TechniqueStatesFunctionsModel techniqueStatesFunctionsModel =
-                new DefaultTechniqueStatesFunctionsModelV1(functions);
-            TechniqueStatesModel techniqueStatesModel = 
-                new DefaultTechniqueStatesModel(
-                    enable, techniqueStatesFunctionsModel);
+                    new DefaultTechniqueStatesFunctionsModelV1(functions);
+            TechniqueStatesModel techniqueStatesModel =
+                    new DefaultTechniqueStatesModel(
+                            enable, techniqueStatesFunctionsModel);
             techniqueModel.setTechniqueStatesModel(techniqueStatesModel);
         }
     }
 
-    
-    
+
+
     /**
      * Initialize the {@link MaterialModel} instances
      */
@@ -1342,23 +1379,23 @@ public final class GltfModelV1 implements GltfModel
         {
             String materialId = entry.getKey();
             Material material = entry.getValue();
-            DefaultMaterialModel materialModel = 
-                get("materials", materialId, materialModels);
-            
+            DefaultMaterialModel materialModel =
+                    get("materials", materialId, materialModels);
+
             materialModel.setValues(material.getValues());
             materialModel.setName(material.getName());
-            
+
             String techniqueId = material.getTechnique();
             if (techniqueId == null ||
-                GltfDefaults.isDefaultTechniqueId(techniqueId))
+                    GltfDefaults.isDefaultTechniqueId(techniqueId))
             {
                 materialModel.setTechniqueModel(
-                    DefaultModels.getDefaultTechniqueModel());
+                        DefaultModels.getDefaultTechniqueModel());
             }
             else
             {
                 DefaultTechniqueModel techniqueModel =
-                    get("techniques", techniqueId, techniqueModels);
+                        get("techniques", techniqueId, techniqueModels);
                 materialModel.setTechniqueModel(techniqueModel);
             }
         }
@@ -1380,92 +1417,92 @@ public final class GltfModelV1 implements GltfModel
         {
             String nodeId = entry.getKey();
             Node node = entry.getValue();
-            
+
             String cameraId = node.getCamera();
             if (cameraId != null)
             {
                 Camera camera = cameras.get(cameraId);
                 NodeModel nodeModel = get("nodes", nodeId, nodeModels);
-                
-                Function<float[], float[]> viewMatrixComputer = result -> 
+
+                Function<float[], float[]> viewMatrixComputer = result ->
                 {
                     float localResult[] = Utils.validate(result, 16);
                     nodeModel.computeGlobalTransform(localResult);
                     MathUtils.invert4x4(localResult, localResult);
                     return localResult;
                 };
-                BiFunction<float[], Float, float[]> projectionMatrixComputer = 
-                    (result, aspectRatio) -> 
-                {
-                    float localResult[] = Utils.validate(result, 16);
-                    CamerasV1.computeProjectionMatrix(
-                        camera, aspectRatio, localResult);
-                    return localResult;
-                };
+                BiFunction<float[], Float, float[]> projectionMatrixComputer =
+                        (result, aspectRatio) ->
+                        {
+                            float localResult[] = Utils.validate(result, 16);
+                            CamerasV1.computeProjectionMatrix(
+                                    camera, aspectRatio, localResult);
+                            return localResult;
+                        };
                 DefaultCameraModel cameraModel = new DefaultCameraModel(
-                    viewMatrixComputer, projectionMatrixComputer);
+                        viewMatrixComputer, projectionMatrixComputer);
                 cameraModel.setName(camera.getName());
-                
+
                 cameraModel.setNodeModel(nodeModel);
 
                 String nodeName = Optionals.of(node.getName(), nodeId);
                 String cameraName = Optionals.of(camera.getName(), cameraId);
                 String instanceName = nodeName + "." + cameraName;
                 cameraModel.setInstanceName(instanceName);
-                
+
                 cameraModels.add(cameraModel);
             }
         }
     }
-    
+
     @Override
     public List<AccessorModel> getAccessorModels()
     {
         return Collections.unmodifiableList(accessorModels);
     }
-    
+
     @Override
     public List<AnimationModel> getAnimationModels()
     {
         return Collections.unmodifiableList(animationModels);
     }
-    
+
     @Override
     public List<BufferModel> getBufferModels()
     {
         return Collections.unmodifiableList(bufferModels);
     }
-    
+
     @Override
     public List<BufferViewModel> getBufferViewModels()
     {
         return Collections.unmodifiableList(bufferViewModels);
     }
-    
+
     @Override
     public List<CameraModel> getCameraModels()
     {
         return Collections.unmodifiableList(cameraModels);
     }
-    
+
     @Override
     public List<ImageModel> getImageModels()
     {
         return Collections.unmodifiableList(imageModels);
     }
-    
+
     @Override
     public List<MaterialModel> getMaterialModels()
     {
         return Collections.unmodifiableList(materialModels);
     }
-    
+
     @Override
     public List<NodeModel> getNodeModels()
     {
         return Collections.unmodifiableList(nodeModels);
     }
-    
+
     @Override
     public List<SceneModel> getSceneModels()
     {
@@ -1477,11 +1514,11 @@ public final class GltfModelV1 implements GltfModel
     {
         return Collections.unmodifiableList(textureModels);
     }
-    
+
     /**
-     * Returns an unmodifiable view on the list of {@link ShaderModel} 
+     * Returns an unmodifiable view on the list of {@link ShaderModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link ShaderModel} instances
      */
     public List<ShaderModel> getShaderModels()
@@ -1490,29 +1527,29 @@ public final class GltfModelV1 implements GltfModel
     }
 
     /**
-     * Returns the raw glTF object, which is a 
+     * Returns the raw glTF object, which is a
      * {@link de.javagl.jgltf.impl.v1.GlTF version 1.0 glTF}.<br>
      * <br>
      * This method should usually not be called by clients. It may be
      * omitted in future versions.
-     * 
+     *
      * @return The glTF object
      */
     public GlTF getGltf()
     {
         return gltf;
     }
-    
+
     /**
-     * Return the element from the given list, based on the 
-     * {@link #indexMappingSet} for the given name and ID. 
-     * If the ID is <code>null</code>, then <code>null</code> is 
+     * Return the element from the given list, based on the
+     * {@link #indexMappingSet} for the given name and ID.
+     * If the ID is <code>null</code>, then <code>null</code> is
      * returned. If there is no proper index stored for the given
      * ID, then a warning will be printed and <code>null</code>
      * will be returned. If the index is not valid for the given
      * list, then a warning will be printed, and <code>null</code>
      * will be returned.
-     * 
+     *
      * @param name The name
      * @param id The ID
      * @param list The list
@@ -1529,12 +1566,12 @@ public final class GltfModelV1 implements GltfModel
         if (index < 0 || index >= list.size())
         {
             logger.severe("Index for " + name + " ID " + id + " is " + index
-                + ", but must be in [0, " + list.size() + ")");
+                    + ", but must be in [0, " + list.size() + ")");
             return null;
         }
         T element = list.get(index);
         return element;
     }
-    
-    
+
+
 }

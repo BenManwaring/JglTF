@@ -26,6 +26,7 @@
  */
 package de.javagl.jgltf.model.animation;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
@@ -75,10 +76,12 @@ class InterpolatorKeys
             return 1.0f;
         }
         float local = key - keys[index];
-        float delta = keys[index+1] - keys[index];
-        float alpha = local / delta;
-        return alpha;
-        
+        if (index < keys.length-1) { //prevent crash on Android by checking array bounds!
+            float delta = keys[index+1] - keys[index];
+            float alpha = local / delta;
+            return alpha;
+        }
+        return 0.5f; //!!!??  TODO
     }
     
     /**

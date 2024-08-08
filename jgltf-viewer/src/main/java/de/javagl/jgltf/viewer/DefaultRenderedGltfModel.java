@@ -346,7 +346,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
             {
                 return super.toString(); // XXX TODO
 //                return RenderCommandUtils.createInfoString(
-//                    gltf, meshPrimitiveName, techniqueId, 
+//                    gltf, meshPrimitiveName, techniqueId,
 //                    uniformSettingCommands);
             }
         };
@@ -360,7 +360,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         {
             transparentRenderCommands.add(meshPrimitiveRenderCommand);
         }
-        
+
         logger.fine("Processing meshPrimitive DONE");
     }
     
@@ -697,8 +697,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
             BufferViewModel bufferViewModel =
                 accessorModel.getBufferViewModel();
 
-            Integer glBufferView =
-                gltfRenderData.obtainGlBufferView(bufferViewModel);
+            Integer glBufferView = gltfRenderData.obtainGlBufferView(bufferViewModel);
             if (glBufferView == null)
             {
                 logger.warning("No GL bufferView found for " + 
