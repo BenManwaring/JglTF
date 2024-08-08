@@ -49,6 +49,11 @@ public interface AnimationModel extends NamedModelElement
         LINEAR,
         
         /**
+         * Catmull-Rom interpolation
+         */
+        CATMULLROMSPLINE,
+        
+        /**
          * Cubic spline interpolation
          */
         CUBICSPLINE        

@@ -36,6 +36,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import de.javagl.jgltf.model.MaterialModel;
 import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.SkinModel;
 import de.javagl.jgltf.model.gl.Semantic;
@@ -44,7 +45,7 @@ import de.javagl.jgltf.model.gl.TechniqueParametersModel;
 
 /**
  * A class that provides a suppliers for the values of uniform variables, 
- * based on a {@link RenderedMaterial}.
+ * based on a {@link MaterialModel}.
  */
 class UniformGetterFactory
 {
@@ -75,11 +76,6 @@ class UniformGetterFactory
      * was already reported. This is mainly intended for debugging.
      */
     private final Set<String> reportedNullUniformNames;
-
-    /**
-     * The RTC center point for the CESIUM_RTC extension
-     */
-    private float rtcCenter[];
     
     /**
      * Creates a new instance
@@ -91,14 +87,11 @@ class UniformGetterFactory
      * @param projectionMatrixSupplier A supplier that supplies the projection
      * matrix, which is a 4x4 matrix, given as a float array, in 
      * column-major order
-     * @param rtcCenter An optional 3D center point for the CESIUM_RTC 
-     * extension
      */
     public UniformGetterFactory(
         Supplier<float[]> viewportSupplier,
         Supplier<float[]> viewMatrixSupplier,
-        Supplier<float[]> projectionMatrixSupplier,
-        float rtcCenter[])
+        Supplier<float[]> projectionMatrixSupplier)
     {
         this.viewportSupplier = Objects.requireNonNull(viewportSupplier, 
             "The viewportSupplier may not be null");
@@ -107,29 +100,27 @@ class UniformGetterFactory
         this.projectionMatrixSupplier = 
             Objects.requireNonNull(projectionMatrixSupplier, 
                 "The projectionMatrixSupplier may not be null");
-        this.rtcCenter = rtcCenter == null ? new float[3] : rtcCenter.clone();
         this.reportedNullUniformNames = new LinkedHashSet<String>();
     }
     
     /**
      * Create a supplier that supplies the value for the specified uniform.
      * If there is no {@link TechniqueParametersModel#getSemantic() semantic} 
-     * defined in the {@link TechniqueModel} of the given 
-     * {@link RenderedMaterial}, then this value will be obtained from the 
-     * {@link TechniqueModel} of the {@link RenderedMaterial}. Otherwise, the 
-     * value will be derived from the context of the currently rendered node, 
-     * which is given by the local and global transform of the 
-     * given {@link NodeModel}  
+     * defined in the {@link TechniqueModel} of the given {@link MaterialModel},
+     * then this value will be obtained from the {@link TechniqueModel} or the 
+     * {@link MaterialModel}. Otherwise, the value will be derived from the 
+     * context of the currently rendered node, which is given by the local 
+     * and global transform of the given {@link NodeModel}  
      * 
      * @param uniformName The name of the uniform
-     * @param renderedMaterial The {@link RenderedMaterial}
+     * @param materialModel The {@link MaterialModel}
      * @param nodeModel The {@link NodeModel}
      * @return The supplier for the uniform value
      */
-    public Supplier<?> createUniformValueSupplier(String uniformName, 
-        RenderedMaterial renderedMaterial, NodeModel nodeModel)
+    public Supplier<?> createUniformValueSupplier(
+        String uniformName, MaterialModel materialModel, NodeModel nodeModel)
     {
-        TechniqueModel techniqueModel = renderedMaterial.getTechniqueModel();
+        TechniqueModel techniqueModel = materialModel.getTechniqueModel();
         Map<String, String> uniforms = techniqueModel.getUniforms();
         String parameterName = uniforms.get(uniformName);
         Map<String, TechniqueParametersModel> parameters = 
@@ -141,7 +132,7 @@ class UniformGetterFactory
         if (semantic == null)
         {
             Supplier<?> supplier = UniformGetters.createGenericSupplier(
-                uniformName, renderedMaterial);
+                uniformName, materialModel);
             return createNullLoggingSupplier(uniformName, supplier);
         }
         return createSemanticBasedSupplier(
@@ -262,21 +253,7 @@ class UniformGetterFactory
         
         TechniqueParametersModel techniqueParameters =
             techniqueModel.getUniformParameters(uniformName);
-        
-        NodeModel nodeModel = currentNodeModel;
-        NodeModel parameterNodeModel = techniqueParameters.getNodeModel();
-        if (parameterNodeModel != null)
-        {
-            nodeModel = parameterNodeModel;
-        }
-        
         String semanticString = techniqueParameters.getSemantic();
-        if (CesiumRtcUtils.isCesiumRtcModelViewSemantic(semanticString))
-        {
-            return CesiumRtcUtils.createCesiumRtcModelViewMatrixSupplier(
-                nodeModel, viewMatrixSupplier, rtcCenter);
-        }
-        
         if (!Semantic.contains(semanticString))
         {
             throw new IllegalArgumentException(
@@ -284,6 +261,14 @@ class UniformGetterFactory
                 semanticString + " in technique " + techniqueModel);
         }
         Semantic semantic = Semantic.valueOf(semanticString);
+        
+        NodeModel nodeModel = currentNodeModel;
+        NodeModel parameterNodeModel = techniqueParameters.getNodeModel();
+        if (parameterNodeModel != null)
+        {
+            nodeModel = parameterNodeModel;
+        }
+
         switch (semantic)
         {
             case LOCAL:
@@ -427,6 +412,7 @@ class UniformGetterFactory
         logger.severe("Unsupported semantic: "+semantic);
         return null;
     }
+    
     
     /**
      * Create a supplier for the joint matrix (actually, joint matrices) of

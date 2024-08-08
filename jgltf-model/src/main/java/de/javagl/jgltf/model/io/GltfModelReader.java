@@ -29,14 +29,13 @@ package de.javagl.jgltf.model.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.io.v1.GltfAssetV1;
 import de.javagl.jgltf.model.io.v2.GltfAssetV2;
 import de.javagl.jgltf.model.v1.GltfModelV1;
-import de.javagl.jgltf.model.v2.GltfModelCreatorV2;
+import de.javagl.jgltf.model.v2.GltfModelV2;
 
 /**
  * A class for reading a {@link GltfModel} from a URI.
@@ -83,22 +82,7 @@ public final class GltfModelReader
         GltfAsset gltfAsset = gltfAssetReader.read(uri);
         return createModel(gltfAsset);
     }
-
-    /**
-     * Read the {@link GltfModel} from the given path
-     *
-     * @param path The path
-     * @return The {@link GltfModel}
-     * @throws IOException If an IO error occurs
-     */
-    public GltfModel read(Path path) throws IOException
-    {
-        GltfAssetReader gltfAssetReader = new GltfAssetReader();
-        gltfAssetReader.setJsonErrorConsumer(jsonErrorConsumer);
-        GltfAsset gltfAsset = gltfAssetReader.read(path);
-        return createModel(gltfAsset);
-    }
-
+    
     /**
      * Read the {@link GltfModel} from the given URI. In contrast to the 
      * {@link #read(URI)} method, this method will not resolve any 
@@ -159,7 +143,7 @@ public final class GltfModelReader
         if (gltfAsset instanceof GltfAssetV2)
         {
             GltfAssetV2 gltfAssetV2 = (GltfAssetV2)gltfAsset;
-            return GltfModelCreatorV2.create(gltfAssetV2);
+            return new GltfModelV2(gltfAssetV2);
         }
         throw new IOException(
             "The glTF asset has an unknown version: " + gltfAsset);

@@ -32,13 +32,14 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import de.javagl.jgltf.model.GltfConstants;
+import de.javagl.jgltf.model.MaterialModel;
 import de.javagl.jgltf.model.gl.TechniqueModel;
 import de.javagl.jgltf.model.gl.TechniqueParametersModel;
 
 /**
  * Utility methods related to obtaining the values of uniform variables from
- * a {@link RenderedMaterial}. Its only non-private method is 
- * {@link #createGenericSupplier(String, RenderedMaterial)}, which is
+ * a {@link MaterialModel}. Its only non-private method is 
+ * {@link #createGenericSupplier(String, MaterialModel)}, which is
  * used by the {@link UniformGetterFactory}.
  */
 class UniformGetters
@@ -77,19 +78,19 @@ class UniformGetters
      * <br>
      * If the {@link TechniqueParametersModel} for the specified uniform can
      * not be looked up in the {@link TechniqueModel} of the given 
-     * {@link RenderedMaterial} then <code>null</code> is returned.
+     * {@link MaterialModel} then <code>null</code> is returned.
      * 
      * @param uniformName The uniform name
-     * @param renderedMaterial The {@link RenderedMaterial}
+     * @param materialModel The {@link MaterialModel}
      * @return The supplier
      * @throws IllegalArgumentException If the
      * {@link TechniqueParametersModel#getType()} is not one of the supported
      * types for OpenGL uniforms
      */
     static Supplier<?> createGenericSupplier(
-        String uniformName, RenderedMaterial renderedMaterial)
+        String uniformName, MaterialModel materialModel)
     {
-        TechniqueModel techniqueModel = renderedMaterial.getTechniqueModel();
+        TechniqueModel techniqueModel = materialModel.getTechniqueModel();
         TechniqueParametersModel techniqueParametersModel = 
             techniqueModel.getUniformParameters(uniformName);
         if (techniqueParametersModel == null)
@@ -105,7 +106,7 @@ class UniformGetters
             case GltfConstants.GL_INT_VEC4:   
             {
                 return createIntArraySupplier(
-                    uniformName, renderedMaterial);
+                    uniformName, materialModel);
             }
 
             case GltfConstants.GL_FLOAT: 
@@ -117,13 +118,13 @@ class UniformGetters
             case GltfConstants.GL_FLOAT_VEC4:   
             {
                 return createFloatArraySupplier(
-                    uniformName, renderedMaterial);
+                    uniformName, materialModel);
             }
             
             case GltfConstants.GL_SAMPLER_2D:
             {
                 return createObjectArraySupplier(
-                    uniformName, renderedMaterial);
+                    uniformName, materialModel);
             }
             
             // These types are not supported as uniform types in OpenGL
@@ -147,23 +148,22 @@ class UniformGetters
 
     /**
      * Obtain the value for the uniform with the given name from the given
-     * {@link RenderedMaterial}. If the value for the parameter is not 
-     * contained in the given {@link RenderedMaterial}, then return the 
-     * default value that is specified by the {@link TechniqueModel} of 
-     * the {@link RenderedMaterial}. 
+     * {@link MaterialModel}. If the value for the parameter is not contained 
+     * in the given {@link MaterialModel}, then return the default value that 
+     * is specified by the {@link TechniqueModel} of the {@link MaterialModel}. 
      * (Note that this value may still be <code>null</code>).
      *   
      * @param uniformName The uniform name
-     * @param renderedMaterial The {@link RenderedMaterial}
+     * @param materialModel The {@link MaterialModel}
      * @return The uniform value
      */
     private static Object getUniformValueObject(
-        String uniformName, RenderedMaterial renderedMaterial)
+        String uniformName, MaterialModel materialModel)
     {
-        TechniqueModel techniqueModel = renderedMaterial.getTechniqueModel();
+        TechniqueModel techniqueModel = materialModel.getTechniqueModel();
         Map<String, String> uniforms = techniqueModel.getUniforms();
         String parameterName = uniforms.get(uniformName);
-        Map<String, Object> materialValues = renderedMaterial.getValues();
+        Map<String, Object> materialValues = materialModel.getValues();
         Object materialValue = materialValues.get(parameterName);
         if (materialValue != null)
         {
@@ -185,17 +185,17 @@ class UniformGetters
      * the actual value object.
      * 
      * @param uniformName The uniform name
-     * @param renderedMaterial The {@link RenderedMaterial}
+     * @param materialModel The {@link MaterialModel}
      * @return The supplier
      */
     private static Supplier<?> createObjectArraySupplier(
-        String uniformName, RenderedMaterial renderedMaterial)
+        String uniformName, MaterialModel materialModel)
     {
         Object value[] = new Object[1];
         return () ->
         {
             Object object = getUniformValueObject(
-                uniformName, renderedMaterial);
+                uniformName, materialModel);
             if (object == null)
             {
                 value[0] = null;
@@ -226,11 +226,11 @@ class UniformGetters
      * to be a single number, an integer array, or a list of numbers  
      * 
      * @param uniformName The uniform name
-     * @param renderedMaterial The {@link RenderedMaterial}
+     * @param materialModel The {@link MaterialModel}
      * @return The supplier
      */
     private static Supplier<?> createIntArraySupplier(
-        String uniformName, RenderedMaterial renderedMaterial)
+        String uniformName, MaterialModel materialModel)
     {
         Supplier<int[]> supplier = new Supplier<int[]>()
         {
@@ -240,7 +240,7 @@ class UniformGetters
             public int[] get()
             {
                 Object object = getUniformValueObject(
-                    uniformName, renderedMaterial);
+                    uniformName, materialModel);
                 if (object == null)
                 {
                     return null;
@@ -274,11 +274,11 @@ class UniformGetters
      * to be a single number, an float array, or a list of numbers  
      * 
      * @param uniformName The uniform name
-     * @param renderedMaterial The {@link RenderedMaterial}
+     * @param materialModel The {@link MaterialModel}
      * @return The supplier
      */
     private static Supplier<?> createFloatArraySupplier(
-        String uniformName, RenderedMaterial renderedMaterial)
+        String uniformName, MaterialModel materialModel)
     {
         Supplier<float[]> supplier = new Supplier<float[]>()
         {
@@ -288,7 +288,7 @@ class UniformGetters
             public float[] get()
             {
                 Object object = getUniformValueObject(
-                    uniformName, renderedMaterial);
+                    uniformName, materialModel);
                 if (object == null)
                 {
                     return null;

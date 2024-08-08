@@ -149,7 +149,8 @@ public final class DefaultBufferViewModel extends AbstractNamedModelElement
     public ByteBuffer getBufferViewData()
     {
         ByteBuffer bufferData = bufferModel.getBufferData();
-        ByteBuffer bufferViewData = 
+
+        ByteBuffer bufferViewData =
             Buffers.createSlice(bufferData, getByteOffset(), getByteLength());
         if (sparseSubstitutionCallback != null && !sparseSubstitutionApplied)
         {

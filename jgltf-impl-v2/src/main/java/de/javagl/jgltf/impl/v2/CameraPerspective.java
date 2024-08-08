@@ -3,7 +3,7 @@
  * 
  * Do not modify this class. It is automatically generated
  * with JsonModelGen (https://github.com/javagl/JsonModelGen)
- * Copyright (c) 2016-2021 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2016 Marco Hutter - http://www.javagl.de
  */
 
 package de.javagl.jgltf.impl.v2;
@@ -28,8 +28,7 @@ public class CameraPerspective
      */
     private Float aspectRatio;
     /**
-     * The floating-point vertical field of view in radians. This value 
-     * **SHOULD** be less than π. (required)<br> 
+     * The floating-point vertical field of view in radians. (required)<br> 
      * Minimum: 0.0 (exclusive) 
      * 
      */
@@ -79,8 +78,7 @@ public class CameraPerspective
     }
 
     /**
-     * The floating-point vertical field of view in radians. This value 
-     * **SHOULD** be less than π. (required)<br> 
+     * The floating-point vertical field of view in radians. (required)<br> 
      * Minimum: 0.0 (exclusive) 
      * 
      * @param yfov The yfov to set
@@ -100,8 +98,7 @@ public class CameraPerspective
     }
 
     /**
-     * The floating-point vertical field of view in radians. This value 
-     * **SHOULD** be less than π. (required)<br> 
+     * The floating-point vertical field of view in radians. (required)<br> 
      * Minimum: 0.0 (exclusive) 
      * 
      * @return The yfov

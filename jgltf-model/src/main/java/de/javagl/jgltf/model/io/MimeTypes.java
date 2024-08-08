@@ -32,10 +32,6 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
-import javax.imageio.ImageReader;
-
-import de.javagl.jgltf.model.image.ImageReaders;
-
 /**
  * Utility methods to related to the MIME type from data URLs or image data
  */
@@ -44,18 +40,18 @@ public class MimeTypes
     /**
      * The logger used in this class
      */
-    private static final Logger logger = 
+    private static final Logger logger =
         Logger.getLogger(MimeTypes.class.getName());
-    
+
     /**
-     * Tries to detect the format of the image data from the given URI, and 
+     * Tries to detect the format of the image data from the given URI, and
      * return the corresponding MIME type string.<br>
      * <br>
-     * This may,  for example, be <code>"image/png"</code> or 
-     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b> 
-     * <code>"image/jpg"</code>!).<br> 
+     * This may,  for example, be <code>"image/png"</code> or
+     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b>
+     * <code>"image/jpg"</code>!).<br>
      * <br>
-     *  
+     *
      * @param uriString The image data
      * @return The image format string, or <code>null</code> if it can not
      * be detected.
@@ -71,7 +67,7 @@ public class MimeTypes
                 String type = getStringBetween(raw, "image/", ";base64");
                 return "image/" + type.toLowerCase();
             }
-        } 
+        }
         catch (URISyntaxException e)
         {
             return null;
@@ -88,13 +84,13 @@ public class MimeTypes
         }
         return "image/" + end.toLowerCase();
     }
-    
+
     /**
      * Returns the part of the input string between the given "before" and
      * "after" part, or <code>null</code> if either of the given parts are
-     * not contained in the input string, or the "after" part appears 
+     * not contained in the input string, or the "after" part appears
      * before the "before" part.
-     * 
+     *
      * @param input The input string
      * @param before The "before" part
      * @param after The "after" part
@@ -115,24 +111,25 @@ public class MimeTypes
         }
         return input.substring(beforeIndex + before.length(), afterIndex);
     }
-    
-    
+
+
     /**
      * Tries to detect the format of the given image data, and return the
      * corresponding MIME type string.<br>
      * <br>
-     * This may,  for example, be <code>"image/png"</code> or 
-     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b> 
-     * <code>"image/jpg"</code>!).<br> 
+     * This may,  for example, be <code>"image/png"</code> or
+     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b>
+     * <code>"image/jpg"</code>!).<br>
      * <br>
-     *  
+     *
      * @param imageData The image data
      * @return The image format string
      * @throws IOException If the image format can not be detected
      */
-    private static String guessImageMimeTypeString(ByteBuffer imageData) 
+    private static String guessImageMimeTypeString(ByteBuffer imageData)
         throws IOException
     {
+        /*
         ImageReader imageReader = null;
         try
         {
@@ -146,20 +143,22 @@ public class MimeTypes
                 imageReader.dispose();
             }
         }
+        */
+        return "image/png"; //TODO!!
     }
-    
+
     /**
      * Tries to detect the format of the given image data, and return the
      * corresponding MIME type string.<br>
      * <br>
-     * This may,  for example, be <code>"image/png"</code> or 
-     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b> 
-     * <code>"image/jpg"</code>!).<br> 
-     * <br>   
+     * This may,  for example, be <code>"image/png"</code> or
+     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b>
+     * <code>"image/jpg"</code>!).<br>
+     * <br>     *
      * @param imageData The image data
      * @return The image format string
      */
-    public static String guessImageMimeTypeStringUnchecked(ByteBuffer imageData) 
+    public static String guessImageMimeTypeStringUnchecked(ByteBuffer imageData)
     {
         try
         {
@@ -170,20 +169,20 @@ public class MimeTypes
             return null;
         }
     }
-    
+
     /**
-     * Tries to detect the format of the given image URI and its data and 
-     * return the corresponding MIME type string.<br> 
+     * Tries to detect the format of the given image URI and its data and
+     * return the corresponding MIME type string.<br>
      * <br>
-     * This may,  for example, be <code>"image/png"</code> or 
-     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b> 
-     * <code>"image/jpg"</code>!).<br> 
+     * This may,  for example, be <code>"image/png"</code> or
+     * <code>"image/gif"</code> or <code>"image/jpeg"</code> (<b>not</b>
+     * <code>"image/jpg"</code>!).<br>
      * <br>
-     * This method will do an (unspecified) best-effort approach to detect 
+     * This method will do an (unspecified) best-effort approach to detect
      * the mime type, either from the image or from the image data (which
-     * are both optional). If the type can not be determined, then 
-     * <code>null</code> will be returned. 
-     *  
+     * are both optional). If the type can not be determined, then
+     * <code>null</code> will be returned.
+     *
      * @param uriString The URI string
      * @param imageData The image data
      * @return The image format string, or <code>null</code> if it can not
@@ -194,7 +193,7 @@ public class MimeTypes
     {
         if (uriString != null)
         {
-            String imageMimeTypeString = 
+            String imageMimeTypeString =
                 MimeTypes.guessImageMimeTypeString(uriString);
             if (imageMimeTypeString != null)
             {
@@ -219,7 +218,7 @@ public class MimeTypes
      * </ul>
      * For other inputs, a warning will be printed, and <code>null</code> will
      * be returned.
-     *  
+     *
      * @param mimeTypeString The MIME type string
      * @return The file extension
      */
@@ -241,7 +240,7 @@ public class MimeTypes
         logger.warning("Invalid MIME type string: " + mimeTypeString);
         return null;
     }
-    
+
 
     /**
      * Private constructor to prevent instantiation

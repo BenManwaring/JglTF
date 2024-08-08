@@ -1,36 +1,9 @@
-/*
- * www.javagl.de - JglTF
- *
- * Copyright 2015-2017 Marco Hutter - http://www.javagl.de
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package de.javagl.jgltf.model.io.v2;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.RawGltfData;
@@ -42,12 +15,6 @@ import de.javagl.jgltf.model.io.RawGltfData;
 public class RawBinaryGltfDataReaderV2
 {
     /**
-     * The logger used in this class
-     */
-    private static final Logger logger =
-        Logger.getLogger(RawBinaryGltfDataReaderV2.class.getName());
-
-    /**
      * The length of the binary glTF header for glTF 2.0, in bytes
      */
     private static final int BINARY_GLTF_VERSION_2_HEADER_LENGTH_IN_BYTES = 12;
@@ -57,55 +24,48 @@ public class RawBinaryGltfDataReaderV2
      * This is an integer corresponding to the ASCII string <code>"JSON"</code>
      */
     private static final int CHUNK_TYPE_JSON = 0x4E4F534A;
-    
+
     /**
      * The constant indicating BIN chunk type for glTF 2.0
      * This is an integer corresponding to the ASCII string <code>"BIN"</code>
      */
     private static final int CHUNK_TYPE_BIN = 0x004E4942;
-    
+
     /**
      * Read the {@link RawGltfData} from the given buffer, which contains
      * the binary glTF 2.0 data
-     * 
+     *
      * @param data The input data
      * @return The {@link RawGltfData}
      * @throws IOException If an IO error occurs
      */
-    public static RawGltfData readBinaryGltf(ByteBuffer data) 
-        throws IOException
+    public static RawGltfData readBinaryGltf(ByteBuffer data)
+            throws IOException
     {
-        ByteBuffer d = data;
         int headerLength = BINARY_GLTF_VERSION_2_HEADER_LENGTH_IN_BYTES;
-        if (d.capacity() < headerLength)
+        if (data.capacity() < headerLength)
         {
             throw new IOException("Expected header of size " + headerLength
-                + ", but only found " + d.capacity() + " bytes");
+                    + ", but only found " + data.capacity() + " bytes");
         }
-        int length = d.getInt(8);
-        if (length > d.capacity())
+        int length = data.getInt(8);
+        if (length != data.capacity())
         {
             throw new IOException(
-                "Data length is " + d.capacity() + ", expected " + length);
+                    "Data length is " + data.capacity() + ", expected " + length);
         }
-        if (length < d.capacity())
-        {
-            logger.info("Data length is " + d.capacity() + ", expected "
-                + length + " - truncating");
-            d = Buffers.createSlice(d, 0, length);
-        }
-        
-        List<Chunk> chunks = readChunks(d);
+
+        List<Chunk> chunks = readChunks(data);
         if (chunks.isEmpty())
         {
             throw new IOException(
-                "Found no chunks in binary glTF data");
+                    "Found no chunks in binary glTF data");
         }
         Chunk jsonChunk = chunks.get(0);
         if (jsonChunk.type != CHUNK_TYPE_JSON)
         {
             throw new IOException("First chunk must be of type JSON ("
-                + CHUNK_TYPE_JSON + "), but found " + jsonChunk.type);
+                    + CHUNK_TYPE_JSON + "), but found " + jsonChunk.type);
         }
         ByteBuffer jsonData = jsonChunk.data;
         ByteBuffer binData = null;
@@ -115,13 +75,13 @@ public class RawBinaryGltfDataReaderV2
             if (binChunk.type != CHUNK_TYPE_BIN)
             {
                 throw new IOException("Second chunk must be of type BIN ("
-                    + CHUNK_TYPE_BIN + "), but found " + jsonChunk.type);
+                        + CHUNK_TYPE_BIN + "), but found " + jsonChunk.type);
             }
             binData = binChunk.data;
         }
         return new RawGltfData(jsonData, binData);
     }
-    
+
     /**
      * A class representing a chunk in binary glTF 2.0
      */
@@ -131,21 +91,21 @@ public class RawBinaryGltfDataReaderV2
          * The length
          */
         int length;
-        
+
         /**
          * The type
          */
         int type;
-        
+
         /**
          * The actual chunk data
          */
         ByteBuffer data;
     }
-    
+
     /**
      * Read the {@link Chunk} objects from the given binary glTF 2.0 data
-     *  
+     *
      * @param data The input data
      * @return The chunks
      * @throws IOException If an IO error occurs
@@ -165,10 +125,10 @@ public class RawBinaryGltfDataReaderV2
             if (offset + chunk.length > data.capacity())
             {
                 throw new IOException("The offset for the data of chunk "
-                    + chunks.size() + " is " + offset + ", its length is "
-                    + chunk.length + ", but " + (offset + chunk.length)
-                    + " is larger than capacity of the buffer, which is only "
-                    + data.capacity());
+                        + chunks.size() + " is " + offset + ", its length is "
+                        + chunk.length + ", but " + (offset + chunk.length)
+                        + " is larger than capacity of the buffer, which is only "
+                        + data.capacity());
             }
             if (chunk.length > 0)
             {

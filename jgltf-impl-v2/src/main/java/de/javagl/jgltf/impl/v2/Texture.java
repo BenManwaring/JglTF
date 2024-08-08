@@ -3,7 +3,7 @@
  * 
  * Do not modify this class. It is automatically generated
  * with JsonModelGen (https://github.com/javagl/JsonModelGen)
- * Copyright (c) 2016-2021 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2016 Marco Hutter - http://www.javagl.de
  */
 
 package de.javagl.jgltf.impl.v2;
@@ -22,22 +22,20 @@ public class Texture
 
     /**
      * The index of the sampler used by this texture. When undefined, a 
-     * sampler with repeat wrapping and auto filtering **SHOULD** be used. 
+     * sampler with repeat wrapping and auto filtering should be used. 
      * (optional) 
      * 
      */
     private Integer sampler;
     /**
-     * The index of the image used by this texture. When undefined, an 
-     * extension or other mechanism **SHOULD** supply an alternate texture 
-     * source, otherwise behavior is undefined. (optional) 
+     * The index of the image used by this texture. (optional) 
      * 
      */
     private Integer source;
 
     /**
      * The index of the sampler used by this texture. When undefined, a 
-     * sampler with repeat wrapping and auto filtering **SHOULD** be used. 
+     * sampler with repeat wrapping and auto filtering should be used. 
      * (optional) 
      * 
      * @param sampler The sampler to set
@@ -53,7 +51,7 @@ public class Texture
 
     /**
      * The index of the sampler used by this texture. When undefined, a 
-     * sampler with repeat wrapping and auto filtering **SHOULD** be used. 
+     * sampler with repeat wrapping and auto filtering should be used. 
      * (optional) 
      * 
      * @return The sampler
@@ -64,9 +62,7 @@ public class Texture
     }
 
     /**
-     * The index of the image used by this texture. When undefined, an 
-     * extension or other mechanism **SHOULD** supply an alternate texture 
-     * source, otherwise behavior is undefined. (optional) 
+     * The index of the image used by this texture. (optional) 
      * 
      * @param source The source to set
      * 
@@ -80,9 +76,7 @@ public class Texture
     }
 
     /**
-     * The index of the image used by this texture. When undefined, an 
-     * extension or other mechanism **SHOULD** supply an alternate texture 
-     * source, otherwise behavior is undefined. (optional) 
+     * The index of the image used by this texture. (optional) 
      * 
      * @return The source
      * 

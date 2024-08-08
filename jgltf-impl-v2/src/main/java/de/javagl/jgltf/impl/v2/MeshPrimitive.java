@@ -3,7 +3,7 @@
  * 
  * Do not modify this class. It is automatically generated
  * with JsonModelGen (https://github.com/javagl/JsonModelGen)
- * Copyright (c) 2016-2021 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2016 Marco Hutter - http://www.javagl.de
  */
 
 package de.javagl.jgltf.impl.v2;
@@ -25,14 +25,14 @@ public class MeshPrimitive
 {
 
     /**
-     * A plain JSON object, where each key corresponds to a mesh attribute 
+     * A dictionary object, where each key corresponds to mesh attribute 
      * semantic and each value is the index of the accessor containing 
      * attribute's data. (required) 
      * 
      */
     private Map<String, Integer> attributes;
     /**
-     * The index of the accessor that contains the vertex indices. (optional) 
+     * The index of the accessor that contains the indices. (optional) 
      * 
      */
     private Integer indices;
@@ -43,18 +43,20 @@ public class MeshPrimitive
      */
     private Integer material;
     /**
-     * The topology type of primitives to render. (optional)<br> 
+     * The type of primitives to render. (optional)<br> 
      * Default: 4<br> 
      * Valid values: [0, 1, 2, 3, 4, 5, 6] 
      * 
      */
     private Integer mode;
     /**
-     * An array of morph targets. (optional)<br> 
+     * An array of Morph Targets, each Morph Target is a dictionary mapping 
+     * attributes (only `POSITION`, `NORMAL`, and `TANGENT` supported) to 
+     * their deviations in the Morph Target. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A plain JSON object specifying attributes displacements in 
-     * a morph target, where each key corresponds to one of the three 
+     * &nbsp;&nbsp;A dictionary object specifying attributes displacements in 
+     * a Morph Target, where each key corresponds to one of the three 
      * supported attribute semantic (`POSITION`, `NORMAL`, or `TANGENT`) and 
      * each value is the index of the accessor containing the attribute 
      * displacements' data. (optional) 
@@ -63,7 +65,7 @@ public class MeshPrimitive
     private List<Map<String, Integer>> targets;
 
     /**
-     * A plain JSON object, where each key corresponds to a mesh attribute 
+     * A dictionary object, where each key corresponds to mesh attribute 
      * semantic and each value is the index of the accessor containing 
      * attribute's data. (required) 
      * 
@@ -79,7 +81,7 @@ public class MeshPrimitive
     }
 
     /**
-     * A plain JSON object, where each key corresponds to a mesh attribute 
+     * A dictionary object, where each key corresponds to mesh attribute 
      * semantic and each value is the index of the accessor containing 
      * attribute's data. (required) 
      * 
@@ -139,7 +141,7 @@ public class MeshPrimitive
     }
 
     /**
-     * The index of the accessor that contains the vertex indices. (optional) 
+     * The index of the accessor that contains the indices. (optional) 
      * 
      * @param indices The indices to set
      * 
@@ -153,7 +155,7 @@ public class MeshPrimitive
     }
 
     /**
-     * The index of the accessor that contains the vertex indices. (optional) 
+     * The index of the accessor that contains the indices. (optional) 
      * 
      * @return The indices
      * 
@@ -189,7 +191,7 @@ public class MeshPrimitive
     }
 
     /**
-     * The topology type of primitives to render. (optional)<br> 
+     * The type of primitives to render. (optional)<br> 
      * Default: 4<br> 
      * Valid values: [0, 1, 2, 3, 4, 5, 6] 
      * 
@@ -210,7 +212,7 @@ public class MeshPrimitive
     }
 
     /**
-     * The topology type of primitives to render. (optional)<br> 
+     * The type of primitives to render. (optional)<br> 
      * Default: 4<br> 
      * Valid values: [0, 1, 2, 3, 4, 5, 6] 
      * 
@@ -233,11 +235,13 @@ public class MeshPrimitive
     }
 
     /**
-     * An array of morph targets. (optional)<br> 
+     * An array of Morph Targets, each Morph Target is a dictionary mapping 
+     * attributes (only `POSITION`, `NORMAL`, and `TANGENT` supported) to 
+     * their deviations in the Morph Target. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A plain JSON object specifying attributes displacements in 
-     * a morph target, where each key corresponds to one of the three 
+     * &nbsp;&nbsp;A dictionary object specifying attributes displacements in 
+     * a Morph Target, where each key corresponds to one of the three 
      * supported attribute semantic (`POSITION`, `NORMAL`, or `TANGENT`) and 
      * each value is the index of the accessor containing the attribute 
      * displacements' data. (optional) 
@@ -259,11 +263,13 @@ public class MeshPrimitive
     }
 
     /**
-     * An array of morph targets. (optional)<br> 
+     * An array of Morph Targets, each Morph Target is a dictionary mapping 
+     * attributes (only `POSITION`, `NORMAL`, and `TANGENT` supported) to 
+     * their deviations in the Morph Target. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A plain JSON object specifying attributes displacements in 
-     * a morph target, where each key corresponds to one of the three 
+     * &nbsp;&nbsp;A dictionary object specifying attributes displacements in 
+     * a Morph Target, where each key corresponds to one of the three 
      * supported attribute semantic (`POSITION`, `NORMAL`, or `TANGENT`) and 
      * each value is the index of the accessor containing the attribute 
      * displacements' data. (optional) 

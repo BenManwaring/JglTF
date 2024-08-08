@@ -81,8 +81,8 @@ public final class GltfReaderV2
      */
     public GlTF read(InputStream inputStream) throws IOException
     {
-        ObjectMapper objectMapper = 
-            JacksonUtils.createObjectMapper(jsonErrorConsumer);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JacksonUtils.configure(objectMapper, jsonErrorConsumer);
         GlTF gltf = objectMapper.readValue(inputStream, GlTF.class);
         return gltf;
     }

@@ -55,7 +55,7 @@ public final class AccessorByteData
      * @param bufferViewByteBuffer The byte buffer of the buffer view
      * @param byteOffset The byte offset in the buffer view 
      * @param numElements The number of elements
-     * @param elementType The {@link ElementType}
+     * @param numComponentsPerElement The number of components per element
      * @param byteStride The byte stride between two elements. If this
      * is <code>null</code> or <code>0</code>, then the stride will
      * be the size of one element.
@@ -69,18 +69,14 @@ public final class AccessorByteData
      */
     public AccessorByteData(int componentType,
         ByteBuffer bufferViewByteBuffer, int byteOffset, int numElements,
-        ElementType elementType, Integer byteStride)
+        int numComponentsPerElement, Integer byteStride)
     {
-        super(componentType, byte.class, bufferViewByteBuffer, byteOffset, 
-            numElements, elementType, Byte.BYTES, byteStride);
+        super(byte.class, bufferViewByteBuffer, byteOffset, numElements, 
+            numComponentsPerElement, Byte.BYTES, byteStride);
         AccessorDatas.validateByteType(componentType);
         this.unsigned = AccessorDatas.isUnsignedType(componentType);
-
-        int numBytesPerElement = 
-            getNumComponentsPerElement() * getNumBytesPerComponent();
         AccessorDatas.validateCapacity(byteOffset, getNumElements(), 
-            numBytesPerElement, getByteStridePerElement(), 
-            bufferViewByteBuffer.capacity());
+            getByteStridePerElement(), bufferViewByteBuffer.capacity());
     }
     
     /**

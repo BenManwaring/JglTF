@@ -46,19 +46,20 @@ import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.Optionals;
 import de.javagl.jgltf.model.gl.ProgramModel;
 import de.javagl.jgltf.model.gl.ShaderModel;
-import de.javagl.jgltf.model.gl.ShaderModel.ShaderType;
 import de.javagl.jgltf.model.gl.TechniqueModel;
 import de.javagl.jgltf.model.gl.TechniqueParametersModel;
 import de.javagl.jgltf.model.gl.TechniqueStatesFunctionsModel;
 import de.javagl.jgltf.model.gl.TechniqueStatesModel;
+import de.javagl.jgltf.model.gl.ShaderModel.ShaderType;
 import de.javagl.jgltf.model.gl.impl.DefaultProgramModel;
 import de.javagl.jgltf.model.gl.impl.DefaultShaderModel;
 import de.javagl.jgltf.model.gl.impl.DefaultTechniqueModel;
 import de.javagl.jgltf.model.gl.impl.DefaultTechniqueParametersModel;
 import de.javagl.jgltf.model.gl.impl.DefaultTechniqueStatesModel;
+import de.javagl.jgltf.model.gl.impl.v1.DefaultTechniqueStatesFunctionsModelV1;
+import de.javagl.jgltf.model.impl.DefaultMaterialModel;
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.IO;
-import de.javagl.jgltf.model.v1.MaterialModelV1;
 
 /**
  * A class containing the default {@link TechniqueModel} and 
@@ -96,7 +97,7 @@ public class DefaultModels
     /**
      * The default {@link MaterialModel}
      */
-    private static final MaterialModelV1 DEFAULT_MATERIAL_MODEL;
+    private static final DefaultMaterialModel DEFAULT_MATERIAL_MODEL;
     
     static
     {
@@ -136,7 +137,7 @@ public class DefaultModels
         
         TechniqueStatesFunctions functions = states.getFunctions();
         TechniqueStatesFunctionsModel techniqueStatesFunctionsModel =
-            TechniqueStatesFunctionsModels.create(functions);
+            new DefaultTechniqueStatesFunctionsModelV1(functions);
         TechniqueStatesModel techniqueStatesModel = 
             new DefaultTechniqueStatesModel(
                 enable, techniqueStatesFunctionsModel);
@@ -144,9 +145,10 @@ public class DefaultModels
 
         // Create a model for the default material
         Material material = GltfDefaults.getDefaultMaterial();
-        DEFAULT_MATERIAL_MODEL = new MaterialModelV1();
+        DEFAULT_MATERIAL_MODEL = new DefaultMaterialModel();
         DEFAULT_MATERIAL_MODEL.setValues(material.getValues());
         DEFAULT_MATERIAL_MODEL.setTechniqueModel(DEFAULT_TECHNIQUE_MODEL);
+        
     }
     
     /**

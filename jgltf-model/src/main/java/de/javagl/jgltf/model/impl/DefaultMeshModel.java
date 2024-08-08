@@ -36,7 +36,7 @@ import de.javagl.jgltf.model.MeshPrimitiveModel;
 /**
  * Implementation of a {@link MeshModel}
  */
-public class DefaultMeshModel extends AbstractNamedModelElement
+public final class DefaultMeshModel extends AbstractNamedModelElement
     implements MeshModel
 {
     /**
@@ -58,9 +58,9 @@ public class DefaultMeshModel extends AbstractNamedModelElement
     }
 
     /**
-     * Add the given {@link MeshPrimitiveModel}
+     * Add a {@link MeshPrimitiveModel}
      * 
-     * @param meshPrimitiveModel The {@link MeshPrimitiveModel}
+     * @param meshPrimitiveModel The {@link MeshPrimitiveModel} to add
      */
     public void addMeshPrimitiveModel(MeshPrimitiveModel meshPrimitiveModel)
     {
@@ -68,14 +68,14 @@ public class DefaultMeshModel extends AbstractNamedModelElement
     }
     
     /**
-     * Set the default morph target weights to be a <b>reference</b> to the 
-     * given array. 
+     * Set the default morph target weights to be a copy of the given array,
+     * or <code>null</code> if the given array is <code>null</code>.
      * 
-     * @param weights The weights
+     * @param weights the default morph target weights
      */
     public void setWeights(float[] weights)
     {
-        this.weights = weights;
+        this.weights = weights == null ? null : weights.clone();
     }
     
     @Override
@@ -87,7 +87,7 @@ public class DefaultMeshModel extends AbstractNamedModelElement
     @Override
     public float[] getWeights()
     {
-        return weights;
+        return weights == null ? null : weights.clone();
     }
 
 }

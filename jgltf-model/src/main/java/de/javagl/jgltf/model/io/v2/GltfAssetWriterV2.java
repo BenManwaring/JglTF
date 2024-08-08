@@ -30,6 +30,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
@@ -97,7 +99,6 @@ public final class GltfAssetWriterV2
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
         {
             GltfWriter gltfWriter = new GltfWriter();
-            gltfWriter.setIndenting(false);
             gltfWriter.write(gltf, baos);
             jsonData = baos.toByteArray();
         }
@@ -165,6 +166,17 @@ public final class GltfAssetWriterV2
         private ByteArrayOutputStream baos;
         
         /**
+         * Temporary buffer for int value data
+         */
+        private static final byte[] INT_DATA = new byte[4];
+        
+        /**
+         * The buffer for filling the INT_DATA
+         */
+        private static final IntBuffer INT_BUFFER = ByteBuffer.wrap(INT_DATA)
+            .order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+        
+        /**
          * Default constructor
          */
         ChunkData()
@@ -180,10 +192,8 @@ public final class GltfAssetWriterV2
          */
         void append(int value) throws IOException
         {
-            baos.write((value >> 0) & 0xFF);
-            baos.write((value >> 8) & 0xFF);
-            baos.write((value >> 16) & 0xFF);
-            baos.write((value >> 24) & 0xFF);
+            INT_BUFFER.put(0, value);
+            baos.write(INT_DATA);
         }
         
         /**

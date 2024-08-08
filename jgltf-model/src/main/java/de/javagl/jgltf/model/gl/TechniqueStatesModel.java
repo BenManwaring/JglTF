@@ -37,17 +37,14 @@ import de.javagl.jgltf.model.GltfConstants;
 public interface TechniqueStatesModel
 {
     /**
-     * Returns an unmodifiable list containing the enabled states,
-     * or <code>null</code> if only the default states should be
-     * enabled.
+     * Returns an unmodifiable list containing the enabled states
      * 
      * @return The enabled states
      */
     List<Integer> getEnable();
     
     /**
-     * Returns the {@link TechniqueStatesFunctionsModel}, or <code>null</code>
-     * if the default technique states functions should be used.
+     * Returns the {@link TechniqueStatesFunctionsModel}
      * 
      * @return The {@link TechniqueStatesFunctionsModel}
      */

@@ -3,7 +3,7 @@
  * 
  * Do not modify this class. It is automatically generated
  * with JsonModelGen (https://github.com/javagl/JsonModelGen)
- * Copyright (c) 2016-2021 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2016 Marco Hutter - http://www.javagl.de
  */
 
 package de.javagl.jgltf.impl.v2;
@@ -11,8 +11,7 @@ package de.javagl.jgltf.impl.v2;
 
 
 /**
- * An animation channel combines an animation sampler with a target 
- * property being animated. 
+ * Targets an animation's sampler at a node's property. 
  * 
  * Auto-generated for animation.channel.schema.json 
  * 
@@ -28,7 +27,7 @@ public class AnimationChannel
      */
     private Integer sampler;
     /**
-     * The descriptor of the animated property. (required) 
+     * The index of the node and TRS property to target. (required) 
      * 
      */
     private AnimationChannelTarget target;
@@ -60,7 +59,7 @@ public class AnimationChannel
     }
 
     /**
-     * The descriptor of the animated property. (required) 
+     * The index of the node and TRS property to target. (required) 
      * 
      * @param target The target to set
      * @throws NullPointerException If the given value is <code>null</code>
@@ -74,7 +73,7 @@ public class AnimationChannel
     }
 
     /**
-     * The descriptor of the animated property. (required) 
+     * The index of the node and TRS property to target. (required) 
      * 
      * @return The target
      * 

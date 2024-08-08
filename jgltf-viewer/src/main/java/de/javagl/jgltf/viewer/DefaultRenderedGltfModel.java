@@ -28,19 +28,16 @@ package de.javagl.jgltf.viewer;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import de.javagl.jgltf.model.AccessorModel;
 import de.javagl.jgltf.model.BufferViewModel;
+import de.javagl.jgltf.model.CameraModel;
 import de.javagl.jgltf.model.GltfConstants;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.MaterialModel;
@@ -49,17 +46,12 @@ import de.javagl.jgltf.model.MeshPrimitiveModel;
 import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.Optionals;
 import de.javagl.jgltf.model.SceneModel;
-import de.javagl.jgltf.model.SkinModel;
 import de.javagl.jgltf.model.TextureModel;
 import de.javagl.jgltf.model.gl.ProgramModel;
 import de.javagl.jgltf.model.gl.TechniqueModel;
 import de.javagl.jgltf.model.gl.TechniqueParametersModel;
 import de.javagl.jgltf.model.gl.TechniqueStatesFunctionsModel;
 import de.javagl.jgltf.model.gl.TechniqueStatesModel;
-import de.javagl.jgltf.model.gl.impl.TechniqueStatesModels;
-import de.javagl.jgltf.model.v1.MaterialModelV1;
-import de.javagl.jgltf.model.v1.gl.DefaultModels;
-import de.javagl.jgltf.model.v2.MaterialModelV2;
 import de.javagl.jgltf.viewer.Morphing.MorphableAttribute;
 
 /**
@@ -81,6 +73,11 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
     private final GlContext glContext;
     
     /**
+     * The view configuration for this rendered glTF
+     */
+    private final ViewConfiguration viewConfiguration;
+    
+    /**
      * The {@link GltfRenderData} which stores mappings from the 
      * {@link ProgramModel}, {@link TextureModel} and 
      * {@link BufferViewModel} instances to the corresponding
@@ -91,7 +88,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
     /**
      * The factory that creates <code>Supplier</code> instances for
      * obtaining the values of uniform variables from a 
-     * {@link RenderedMaterial}
+     * {@link MaterialModel}
      */
     private final UniformGetterFactory uniformGetterFactory;
     
@@ -104,11 +101,14 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
     private final UniformSetterFactory uniformSetterFactory;
     
     /**
-     * The {@link RenderedMaterialHandler}. For glTF 2.0 materials, it
-     * will receive the material object and create an appropriate
-     * {@link RenderedMaterial} instance.
+     * A function that is used for looking up the {@link TextureModel} for
+     * a reference that is given in a {@link MaterialModel}. The 
+     * {@link MaterialModel#getValues() material values} may contain
+     * a reference to a texture for one of the uniform names. This
+     * reference may be a texture ID (for glTF 1.0) or a texture index
+     * (for glTF 2.0). 
      */
-    private final RenderedMaterialHandler materialModelHandler;
+    private final Function<Object, ? extends TextureModel> textureModelLookup;
     
     /**
      * The list of commands that have to be executed for rendering the
@@ -121,6 +121,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
      * transparent mesh primitives
      */
     private final List<Runnable> transparentRenderCommands;
+    
     
     /**
      * Creates a new instance that renders the given {@link GltfModel} using 
@@ -135,44 +136,29 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
      * 
      * @param gltfModel The {@link GltfModel}
      * @param glContext The {@link GlContext}
+     * @param textureModelLookup A function that is used for looking up 
+     * the {@link TextureModel} for a reference that is given in the 
+     * {@link MaterialModel#getValues() material values}
      * @param viewConfiguration The {@link ViewConfiguration}
      */
     public DefaultRenderedGltfModel(
         GlContext glContext, GltfModel gltfModel, 
+        Function<Object, ? extends TextureModel> textureModelLookup, 
         ViewConfiguration viewConfiguration)
     {
         Objects.requireNonNull(gltfModel, "The gltfModel may not be null");
+        this.textureModelLookup = Objects.requireNonNull(textureModelLookup,
+            "The textureModelLookup may not be null");
         this.glContext = glContext;
-        
-        Objects.requireNonNull(viewConfiguration,
+        this.viewConfiguration = Objects.requireNonNull(viewConfiguration,
             "The viewConfiguration may not be null");
 
-        float rtcCenter[] = CesiumRtcUtils.extractRtcCenterFromModel(gltfModel);
-        if (rtcCenter != null)
-        {
-            // NOTE: The RTC center is not really APPLIED here during 
-            // rendering, because this is handling a single model that
-            // should always be relative to the application coordinate
-            // system at 0,0,0
-            logger.info("CESIUM_RTC center is " + Arrays.toString(rtcCenter));
-            logger.info("Resetting to 0, 0, 0");
-            rtcCenter[0] = 0.0f;
-            rtcCenter[1] = 0.0f;
-            rtcCenter[2] = 0.0f;
-        }
-        
         this.gltfRenderData = new GltfRenderData(glContext);
         this.uniformGetterFactory = new UniformGetterFactory( 
             viewConfiguration::getViewport,
             viewConfiguration::getViewMatrix,
-            viewConfiguration::getProjectionMatrix,
-            rtcCenter);
+            viewConfiguration::getProjectionMatrix);
         this.uniformSetterFactory = new UniformSetterFactory(glContext);
-        
-        Map<TextureModel, Integer> textureIndexMap = 
-            computeIndexMap(gltfModel.getTextureModels());
-        this.materialModelHandler = new RenderedMaterialHandler(
-            textureIndexMap::get);
 
         this.opaqueRenderCommands = new ArrayList<Runnable>();
         this.transparentRenderCommands = new ArrayList<Runnable>();
@@ -182,7 +168,6 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
             .forEach(this::processSceneModel);
         logger.fine("Processing scenes DONE...");
     }
-    
     
     
     @Override
@@ -208,6 +193,12 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         {
             renderCommand.run();
         }
+    }
+    
+    @Override
+    public void setCurrentCameraModel(CameraModel cameraModel)
+    {
+        viewConfiguration.setCurrentCameraModel(cameraModel);
     }
     
     /**
@@ -264,52 +255,6 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         logger.fine("Processing node " + nodeModel + " DONE");
 
     }
-    
-    /**
-     * Obtain a {@link RenderedMaterial} instance that represents the 
-     * material for the given {@link MaterialModel}
-     * 
-     * @param nodeModel The {@link NodeModel} to which the currently 
-     * rendered object belongs
-     * @param materialModel The {@link MaterialModel}
-     * @return The {@link RenderedMaterial}
-     */
-    private RenderedMaterial obtainRenderedMaterial(
-        NodeModel nodeModel, MaterialModel materialModel)
-    {
-        if (materialModel == null)
-        {
-            MaterialModelV1 defaultMaterialModel = 
-                (MaterialModelV1) DefaultModels.getDefaultMaterialModel();
-            TechniqueModel techniqueModel = 
-                defaultMaterialModel.getTechniqueModel();
-            Map<String, Object> values = defaultMaterialModel.getValues();
-            return new DefaultRenderedMaterial(techniqueModel, values);
-        }
-        
-        if (materialModel instanceof MaterialModelV1)
-        {
-            MaterialModelV1 materialModelV1 = (MaterialModelV1)materialModel;
-            TechniqueModel techniqueModel = 
-                materialModelV1.getTechniqueModel();
-            Map<String, Object> values = materialModelV1.getValues();
-            return new DefaultRenderedMaterial(techniqueModel, values);
-        }
-        if (materialModel instanceof MaterialModelV2)
-        {
-            MaterialModelV2 materialModelV2 = (MaterialModelV2)materialModel;
-            SkinModel skinModel = nodeModel.getSkinModel();
-            int numJoints = 0;
-            if (skinModel != null)
-            {
-                numJoints = skinModel.getJoints().size();
-            }
-            return materialModelHandler.createRenderedMaterial(
-                materialModelV2, numJoints);
-        }
-        logger.severe("Unknown material model type: " + materialModel);
-        return null;
-    }
 
     /**
      * Process the given {@link MeshPrimitiveModel} that was found in a
@@ -326,9 +271,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         logger.fine("Processing meshPrimitive...");
 
         MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-        RenderedMaterial renderedMaterial = 
-            obtainRenderedMaterial(nodeModel, materialModel);
-        TechniqueModel techniqueModel = renderedMaterial.getTechniqueModel();
+        TechniqueModel techniqueModel = materialModel.getTechniqueModel();
         ProgramModel programModel = techniqueModel.getProgramModel();
 
         // Obtain the GL program for the Program of the Technique
@@ -357,7 +300,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         // Create the commands to set the uniforms
         List<Runnable> uniformSettingCommands = 
             createUniformSettingCommands(
-                renderedMaterial, nodeModel, glProgram);
+                materialModel, nodeModel, glProgram);
         commands.addAll(uniformSettingCommands);
 
         // Create the commands to set the technique.states and 
@@ -367,32 +310,14 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         
         TechniqueStatesModel techniqueStatesModel = 
             techniqueModel.getTechniqueStatesModel();
-        List<Integer> enabledStates;
-        if (techniqueStatesModel.getEnable() != null)
-        {
-            enabledStates = techniqueStatesModel.getEnable();
-        }
-        else
-        {
-            enabledStates = 
-                TechniqueStatesModels.createDefaultTechniqueStatesEnable();
-        }
+        List<Integer> enabledStates = techniqueStatesModel.getEnable();
         commands.add(() -> {
             glContext.enable(enabledStates);
         });
-        TechniqueStatesFunctionsModel techniqueStatesFunctionsModel;
-        if (techniqueStatesModel.getTechniqueStatesFunctionsModel() != null)
-        {
-            techniqueStatesFunctionsModel = 
-                techniqueStatesModel.getTechniqueStatesFunctionsModel();
-        }
-        else
-        {
-            techniqueStatesFunctionsModel = 
-                TechniqueStatesModels.createDefaultTechniqueStatesFunctions();
-        }
-        commands.addAll(TechniqueStatesFunctions
-            .createTechniqueStatesFunctionsSettingCommands(
+        TechniqueStatesFunctionsModel techniqueStatesFunctionsModel = 
+            techniqueStatesModel.getTechniqueStatesFunctionsModel();
+        commands.addAll(
+            createTechniqueStatesFunctionsSettingCommands(
                 glContext, techniqueStatesFunctionsModel));
         
         commands.addAll(attributeUpdateCommands);
@@ -421,7 +346,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
             {
                 return super.toString(); // XXX TODO
 //                return RenderCommandUtils.createInfoString(
-//                    gltf, meshPrimitiveName, techniqueId, 
+//                    gltf, meshPrimitiveName, techniqueId,
 //                    uniformSettingCommands);
             }
         };
@@ -435,7 +360,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         {
             transparentRenderCommands.add(meshPrimitiveRenderCommand);
         }
-        
+
         logger.fine("Processing meshPrimitive DONE");
     }
     
@@ -494,25 +419,21 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
     
     /**
      * Create a list of commands that set the values of the uniforms of the 
-     * given {@link DefaultRenderedMaterial} in the {@link GlContext}.
+     * given {@link MaterialModel} in the {@link GlContext}.
      * 
-     * @param renderedMaterial The {@link DefaultRenderedMaterial}
+     * @param materialModel The {@link MaterialModel}
      * @param nodeModel The {@link NodeModel} that contains the rendered
      * object
      * @param glProgram The OpenGL program
      * @return The list of commands
      */
     private List<Runnable> createUniformSettingCommands(
-        RenderedMaterial renderedMaterial, 
-        NodeModel nodeModel, Integer glProgram)
+        MaterialModel materialModel, NodeModel nodeModel, Integer glProgram)
     {
         List<Runnable> uniformSettingCommands =
             new ArrayList<Runnable>();
         
-        Set<String> missingTextureUniformNames = 
-            new LinkedHashSet<String>();
-        
-        TechniqueModel techniqueModel = renderedMaterial.getTechniqueModel();
+        TechniqueModel techniqueModel = materialModel.getTechniqueModel();
         Map<String, String> uniforms = techniqueModel.getUniforms();
         int textureCounter = 0;
         for (String uniformName : uniforms.keySet())
@@ -522,10 +443,10 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
                 techniqueModel.getUniformParameters(uniformName);
             
             // Create the supplier for the value that corresponds
-            // to the uniform
+            // the the uniform
             Supplier<?> uniformValueSupplier = 
                 uniformGetterFactory.createUniformValueSupplier(
-                    uniformName, renderedMaterial, nodeModel);
+                    uniformName, materialModel, nodeModel);
             
             // Create the command for setting the uniform value
             // in the GL context
@@ -547,38 +468,39 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
                 int textureIndex = textureCounter;
                 Runnable uniformSettingCommand = () ->
                 {
-                    // TODO This should be solved more elegantly. 
-                    // The command should not actually be created
-                    // if the texture is missing.
-                    if (missingTextureUniformNames.contains(uniformName))
-                    {
-                        return;
-                    }
                     Object value[] = (Object[])uniformValueSupplier.get();
-                    Object textureModelObject = value[0];
+                    Object textureIdOrIndex = value[0];
                     
-                    if (textureModelObject == null ||
-                        !(textureModelObject instanceof TextureModel))
+                    // TODO Should this handled by a return here?
+                    // What about the texture counter etc?
+                    if (textureIdOrIndex == null)
                     {
-                        logger.warning("No valid texture model found "
-                            + "for uniform " + uniformName + ": " 
-                            + textureModelObject);
-                        missingTextureUniformNames.add(uniformName);
                         return;
                     }
+                    
                     TextureModel textureModel = 
-                        (TextureModel)textureModelObject; 
-                    Integer glTexture = 
-                        gltfRenderData.obtainGlTexture(textureModel);
-                    if (glTexture == null)
+                        textureModelLookup.apply(textureIdOrIndex);
+                    
+                    // TODO Handle the case that the textureModel is not found
+                    if (textureIdOrIndex == null)
                     {
-                        logger.warning("Could not obtain GL texture "
-                            + "for texture " + textureModel );
+                        logger.warning("No texture ID or index found "
+                            + "for uniform " + uniformName);
                     }
                     else
                     {
-                        glContext.setUniformSampler(
-                            location, textureIndex, glTexture);
+                        Integer glTexture = 
+                            gltfRenderData.obtainGlTexture(textureModel);
+                        if (glTexture == null)
+                        {
+                            logger.warning("Could not obtain GL texture "
+                                + "for texture " + textureIdOrIndex );
+                        }
+                        else
+                        {
+                            glContext.setUniformSampler(
+                                location, textureIndex, glTexture);
+                        }
                     }
                 };
                 textureCounter++;
@@ -602,6 +524,110 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         return uniformSettingCommands;
     }
     
+    /**
+     * Create the functions that, when executed, call the functions
+     * in the {@link GlContext} for setting the states that have been 
+     * defined in the {@link TechniqueStatesFunctionsModel}. When any 
+     * information is missing, the default values will be set.
+     * 
+     * @param glContext The {@link GlContext}
+     * @param techniqueStatesFunctionsModel The 
+     * {@link TechniqueStatesFunctionsModel} 
+     * @return The list of commands
+     */
+    private static List<Runnable> createTechniqueStatesFunctionsSettingCommands(
+        GlContext glContext, 
+        TechniqueStatesFunctionsModel techniqueStatesFunctionsModel)
+    {
+        List<Runnable> commands = new ArrayList<Runnable>();
+        
+        float[] blendColor = 
+            techniqueStatesFunctionsModel.getBlendColor();
+        commands.add(() ->
+        {
+            glContext.setBlendColor(
+                blendColor[0], blendColor[1], 
+                blendColor[2], blendColor[3]);
+        });
+        
+        int[] blendEquationSeparate = 
+            techniqueStatesFunctionsModel.getBlendEquationSeparate();
+        commands.add(() ->
+        {
+            glContext.setBlendEquationSeparate(
+                blendEquationSeparate[0], blendEquationSeparate[1]);
+        });
+        
+        int[] blendFuncSeparate = 
+            techniqueStatesFunctionsModel.getBlendFuncSeparate();
+        commands.add(() ->
+        {
+            glContext.setBlendFuncSeparate(
+                blendFuncSeparate[0], blendFuncSeparate[1],
+                blendFuncSeparate[2], blendFuncSeparate[3]);
+        });
+        
+        boolean[] colorMask = 
+            techniqueStatesFunctionsModel.getColorMask();
+        commands.add(() ->
+        {
+            glContext.setColorMask(
+                colorMask[0], colorMask[1],
+                colorMask[2], colorMask[3]);
+        });
+        
+        int[] cullFace = 
+            techniqueStatesFunctionsModel.getCullFace();
+        commands.add(() ->
+        {
+            glContext.setCullFace(cullFace[0]);
+        });
+        
+        int[] depthFunc = 
+            techniqueStatesFunctionsModel.getDepthFunc();
+        commands.add(() ->
+        {
+            glContext.setDepthFunc(depthFunc[0]);
+        });
+        
+        boolean[] depthMask = 
+            techniqueStatesFunctionsModel.getDepthMask();
+        commands.add(() ->
+        {
+            glContext.setDepthMask(depthMask[0]);
+        });
+        
+        float[] depthRange = 
+            techniqueStatesFunctionsModel.getDepthRange();
+        commands.add(() ->
+        {
+            glContext.setDepthRange(depthRange[0], depthRange[1]);
+        });
+        
+        int[] frontFace = 
+            techniqueStatesFunctionsModel.getFrontFace();
+        commands.add(() ->
+        {
+            glContext.setFrontFace(frontFace[0]);
+        });
+        
+        float[] lineWidth = 
+            techniqueStatesFunctionsModel.getLineWidth();
+        commands.add(() ->
+        {
+            glContext.setLineWidth(lineWidth[0]);
+        });
+        
+        float[] polygonOffset = 
+            techniqueStatesFunctionsModel.getPolygonOffset();
+        commands.add(() ->
+        {
+            glContext.setPolygonOffset(
+                polygonOffset[0], polygonOffset[1]);
+        });
+        
+        return commands;
+    }
 
     /**
      * Walk through the {@link MeshPrimitiveModel#getAttributes() attributes} of
@@ -626,9 +652,7 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         List<Runnable> attributeUpdateCommands = new ArrayList<Runnable>();
 
         MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-        RenderedMaterial renderedMaterial = 
-            obtainRenderedMaterial(nodeModel, materialModel);
-        TechniqueModel techniqueModel = renderedMaterial.getTechniqueModel();
+        TechniqueModel techniqueModel = materialModel.getTechniqueModel();
         ProgramModel programModel = techniqueModel.getProgramModel();
 
         // Obtain the GL program for the Program of the Technique
@@ -665,34 +689,15 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
 
             if (accessorModel == null)
             {
-                if (semantic.equals("NORMAL"))
-                {
-                    logger.info(
-                        "No normals found, computing default");
-                    
-                    // TODO: The normals would actually have to be updated
-                    // during the animation. This could be done by creating
-                    // an attributeUpdateCommand here.
-                    AccessorModel positionsAccessorModel = 
-                        meshPrimitiveAttributes.get("POSITION");
-                    AccessorModel indicesAccessorModel = 
-                        meshPrimitiveModel.getIndices();
-                    accessorModel = NormalComputation.createDefaultNormals(
-                        positionsAccessorModel, indicesAccessorModel);
-                }
-                else
-                {
-                    logger.fine(
-                        "No accessor model found for semantic " + semantic);
-                    continue;
-                }
+                logger.fine(
+                    "No accessor model found for semantic " + semantic);
+                continue;
             }
 
             BufferViewModel bufferViewModel =
                 accessorModel.getBufferViewModel();
 
-            Integer glBufferView =
-                gltfRenderData.obtainGlBufferView(bufferViewModel);
+            Integer glBufferView = gltfRenderData.obtainGlBufferView(bufferViewModel);
             if (glBufferView == null)
             {
                 logger.warning("No GL bufferView found for " + 
@@ -731,8 +736,6 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
         }
         return attributeUpdateCommands;
     }
-    
-    
 
     /**
      * Create a command that updates the specified attribute data. <br>
@@ -818,26 +821,5 @@ class DefaultRenderedGltfModel implements RenderedGltfModel
             // Empty
         };
     }
-    
-    /**
-     * Create an ordered map that contains a mapping of the given elements
-     * to consecutive integers
-     * 
-     * @param elements The elements
-     * @return The index map
-     */
-    private static <T> Map<T, Integer> computeIndexMap(
-        Collection<? extends T> elements)
-    {
-        Map<T, Integer> indices = new LinkedHashMap<T, Integer>();
-        int index = 0;
-        for (T element : elements)
-        {
-            indices.put(element, index);
-            index++;
-        }
-        return indices;
-    }
-    
 
 }

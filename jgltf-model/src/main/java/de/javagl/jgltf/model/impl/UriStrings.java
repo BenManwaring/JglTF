@@ -66,7 +66,6 @@ public class UriStrings
             {
                 return uri;
             }
-            counter++;
         }
     }
     
@@ -91,7 +90,6 @@ public class UriStrings
             {
                 return uri;
             }
-            counter++;
         }
     }
 
@@ -150,7 +148,6 @@ public class UriStrings
             {
                 return uri;
             }
-            counter++;
         }
     }
     

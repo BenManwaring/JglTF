@@ -90,9 +90,23 @@ public class GltfAssetWriter
         {
             writeJson(gltfAsset, outputStream);
         }
-        writeReferenceDatas(gltfAsset, file);
+        for (Entry<String, ByteBuffer> entry : 
+            gltfAsset.getReferenceDatas().entrySet())
+        {
+            String relativeUrlString = entry.getKey();
+            ByteBuffer data = entry.getValue();
+            
+            String referenceFileName = 
+                file.toPath().getParent().resolve(relativeUrlString).toString();
+            try (@SuppressWarnings("resource")
+                WritableByteChannel writableByteChannel = 
+                Channels.newChannel(new FileOutputStream(referenceFileName)))
+            {
+                writableByteChannel.write(data.slice());
+            }
+        }
     }
-
+    
     /**
      * Write the JSON part of the given {@link GltfAsset} to a file with 
      * the given name. The {@link GltfAsset#getBinaryData() binary data}
@@ -176,8 +190,6 @@ public class GltfAssetWriter
         {
             writeBinary(gltfAsset, outputStream);
         }
-        // Binary glTF assets may still have external references
-        writeReferenceDatas(gltfAsset, file);
     }
     
     /**
@@ -208,34 +220,6 @@ public class GltfAssetWriter
         {
             throw new IOException(
                 "The gltfAsset has an unknown version: " + gltfAsset);
-        }
-    }
-
-    /**
-     * Write all {@link GltfAsset#getReferenceDatas()} to files, relative
-     * to the given file.
-     * 
-     * @param gltfAsset The {@link GltfAsset}
-     * @param file The base file
-     * @throws IOException If an IO error occurs
-     */
-    private void writeReferenceDatas(GltfAsset gltfAsset, File file)
-        throws IOException
-    {
-        for (Entry<String, ByteBuffer> entry : 
-            gltfAsset.getReferenceDatas().entrySet())
-        {
-            String relativeUrlString = entry.getKey();
-            ByteBuffer data = entry.getValue();
-            
-            String referenceFileName = 
-                file.toPath().getParent().resolve(relativeUrlString).toString();
-            try (@SuppressWarnings("resource")
-                WritableByteChannel writableByteChannel = 
-                Channels.newChannel(new FileOutputStream(referenceFileName)))
-            {
-                writableByteChannel.write(data.slice());
-            }
         }
     }
     

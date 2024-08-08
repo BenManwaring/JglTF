@@ -45,11 +45,6 @@ public final class DefaultAccessorModel extends AbstractNamedModelElement
     private final int componentType;
     
     /**
-     * Whether the accessor is normalized
-     */
-    private boolean normalized;
-    
-    /**
      * The offset in bytes, referring to the buffer view
      */
     private int byteOffset;
@@ -104,7 +99,6 @@ public final class DefaultAccessorModel extends AbstractNamedModelElement
         this.componentType = componentType;
         this.count = count;
         this.elementType = elementType;
-        this.byteStride = elementType.getByteStride(componentType);
     }
     
     /**
@@ -129,7 +123,7 @@ public final class DefaultAccessorModel extends AbstractNamedModelElement
     
     /**
      * Set the byte stride, indicating the number of bytes between the start
-     * of one element and the start of the next element.
+     * of one element and the start of the next element
      * 
      * @param byteStride The byte stride
      */
@@ -158,22 +152,6 @@ public final class DefaultAccessorModel extends AbstractNamedModelElement
     }
     
     @Override
-    public boolean isNormalized()
-    {
-        return normalized;
-    }
-    
-    /**
-     * Set whether the underlying data is normalized
-     * 
-     * @param normalized Whether the underlying data is normalized 
-     */
-    public void setNormalized(boolean normalized)
-    {
-        this.normalized = normalized;
-    }
-    
-    @Override
     public int getComponentSizeInBytes()
     {
         return Accessors.getNumBytesForAccessorComponentType(componentType);
@@ -183,12 +161,6 @@ public final class DefaultAccessorModel extends AbstractNamedModelElement
     public int getElementSizeInBytes()
     {
         return elementType.getNumComponents() * getComponentSizeInBytes();
-    }
-    
-    @Override
-    public int getPaddedElementSizeInBytes()
-    {
-        return elementType.getByteStride(componentType);
     }
     
     @Override
@@ -215,19 +187,13 @@ public final class DefaultAccessorModel extends AbstractNamedModelElement
         return byteStride;
     }
     
-    /**
-     * Set the {@link AccessorData} for this accessor
-     * 
-     * @param accessorData The {@link AccessorData}
-     */
-    public void setAccessorData(AccessorData accessorData)
-    {
-        this.accessorData = accessorData;
-    }
-    
     @Override
     public AccessorData getAccessorData()
     {
+        if (accessorData == null)
+        {
+            accessorData = AccessorDatas.create(this);
+        }
         return accessorData;
     }
     
