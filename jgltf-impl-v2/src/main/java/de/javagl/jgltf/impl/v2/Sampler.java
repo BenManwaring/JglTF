@@ -3,7 +3,7 @@
  * 
  * Do not modify this class. It is automatically generated
  * with JsonModelGen (https://github.com/javagl/JsonModelGen)
- * Copyright (c) 2016-2021 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2016 Marco Hutter - http://www.javagl.de
  */
 
 package de.javagl.jgltf.impl.v2;
@@ -33,14 +33,14 @@ public class Sampler
      */
     private Integer minFilter;
     /**
-     * S (U) wrapping mode. (optional)<br> 
+     * s wrapping mode. (optional)<br> 
      * Default: 10497<br> 
      * Valid values: [33071, 33648, 10497] 
      * 
      */
     private Integer wrapS;
     /**
-     * T (V) wrapping mode. (optional)<br> 
+     * t wrapping mode. (optional)<br> 
      * Default: 10497<br> 
      * Valid values: [33071, 33648, 10497] 
      * 
@@ -110,7 +110,7 @@ public class Sampler
     }
 
     /**
-     * S (U) wrapping mode. (optional)<br> 
+     * s wrapping mode. (optional)<br> 
      * Default: 10497<br> 
      * Valid values: [33071, 33648, 10497] 
      * 
@@ -131,7 +131,7 @@ public class Sampler
     }
 
     /**
-     * S (U) wrapping mode. (optional)<br> 
+     * s wrapping mode. (optional)<br> 
      * Default: 10497<br> 
      * Valid values: [33071, 33648, 10497] 
      * 
@@ -154,7 +154,7 @@ public class Sampler
     }
 
     /**
-     * T (V) wrapping mode. (optional)<br> 
+     * t wrapping mode. (optional)<br> 
      * Default: 10497<br> 
      * Valid values: [33071, 33648, 10497] 
      * 
@@ -175,7 +175,7 @@ public class Sampler
     }
 
     /**
-     * T (V) wrapping mode. (optional)<br> 
+     * t wrapping mode. (optional)<br> 
      * Default: 10497<br> 
      * Valid values: [33071, 33648, 10497] 
      * 

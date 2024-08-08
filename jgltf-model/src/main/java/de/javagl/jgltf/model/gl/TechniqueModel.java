@@ -100,8 +100,7 @@ public interface TechniqueModel extends NamedModelElement
     TechniqueParametersModel getUniformParameters(String uniformName);
     
     /**
-     * Returns the {@link TechniqueStatesModel}, or <code>null</code> if the
-     * default technique states should be used.
+     * Returns the {@link TechniqueStatesModel}
      * 
      * @return The {@link TechniqueStatesModel}
      */

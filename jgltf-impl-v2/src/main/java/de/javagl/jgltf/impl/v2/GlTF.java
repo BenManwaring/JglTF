@@ -3,7 +3,7 @@
  * 
  * Do not modify this class. It is automatically generated
  * with JsonModelGen (https://github.com/javagl/JsonModelGen)
- * Copyright (c) 2016-2021 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2016 Marco Hutter - http://www.javagl.de
  */
 
 package de.javagl.jgltf.impl.v2;
@@ -23,7 +23,7 @@ public class GlTF
 {
 
     /**
-     * Names of glTF extensions used in this asset. (optional)<br> 
+     * Names of glTF extensions used somewhere in this asset. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;The elements of this array (optional) 
@@ -43,8 +43,10 @@ public class GlTF
      * An array of accessors. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A typed view into a buffer view that contains raw binary 
-     * data. (optional) 
+     * &nbsp;&nbsp;A typed view into a bufferView. A bufferView contains raw 
+     * binary data. An accessor provides a typed view into a bufferView or a 
+     * subset of a bufferView similar to how WebGL's `vertexAttribPointer()` 
+     * defines an attribute in a buffer. (optional) 
      * 
      */
     private List<Accessor> accessors;
@@ -83,8 +85,8 @@ public class GlTF
      * An array of cameras. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A camera's projection. A node **MAY** reference a camera 
-     * to apply a transform to place the camera in the scene. (optional) 
+     * &nbsp;&nbsp;A camera's projection. A node can reference a camera to 
+     * apply a transform to place the camera in the scene. (optional) 
      * 
      */
     private List<Camera> cameras;
@@ -92,8 +94,9 @@ public class GlTF
      * An array of images. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;Image data used to create a texture. Image **MAY** be 
-     * referenced by an URI (or IRI) or a buffer view index. (optional) 
+     * &nbsp;&nbsp;Image data used to create a texture. Image can be 
+     * referenced by URI or `bufferView` index. `mimeType` is required in the 
+     * latter case. (optional) 
      * 
      */
     private List<Image> images;
@@ -109,8 +112,8 @@ public class GlTF
      * An array of meshes. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A set of primitives to be rendered. Its global transform 
-     * is defined by a node that references it. (optional) 
+     * &nbsp;&nbsp;A set of primitives to be rendered. A node can contain one 
+     * mesh. A node's transform places the mesh in the scene. (optional) 
      * 
      */
     private List<Mesh> meshes;
@@ -119,15 +122,15 @@ public class GlTF
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;A node in the node hierarchy. When the node contains 
-     * `skin`, all `mesh.primitives` **MUST** contain `JOINTS_0` and 
-     * `WEIGHTS_0` attributes. A node **MAY** have either a `matrix` or any 
-     * combination of `translation`/`rotation`/`scale` (TRS) properties. TRS 
-     * properties are converted to matrices and postmultiplied in the `T * R 
-     * * S` order to compose the transformation matrix; first the scale is 
-     * applied to the vertices, then the rotation, and then the translation. 
-     * If none are provided, the transform is the identity. When a node is 
-     * targeted for animation (referenced by an animation.channel.target), 
-     * `matrix` **MUST NOT** be present. (optional) 
+     * `skin`, all `mesh.primitives` must contain `JOINTS_0` and `WEIGHTS_0` 
+     * attributes. A node can have either a `matrix` or any combination of 
+     * `translation`/`rotation`/`scale` (TRS) properties. TRS properties are 
+     * converted to matrices and postmultiplied in the `T * R * S` order to 
+     * compose the transformation matrix; first the scale is applied to the 
+     * vertices, then the rotation, and then the translation. If none are 
+     * provided, the transform is the identity. When a node is targeted for 
+     * animation (referenced by an animation.channel.target), only TRS 
+     * properties may be present; `matrix` will not be present. (optional) 
      * 
      */
     private List<Node> nodes;
@@ -171,7 +174,7 @@ public class GlTF
     private List<Texture> textures;
 
     /**
-     * Names of glTF extensions used in this asset. (optional)<br> 
+     * Names of glTF extensions used somewhere in this asset. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;The elements of this array (optional) 
@@ -193,7 +196,7 @@ public class GlTF
     }
 
     /**
-     * Names of glTF extensions used in this asset. (optional)<br> 
+     * Names of glTF extensions used somewhere in this asset. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;The elements of this array (optional) 
@@ -346,8 +349,10 @@ public class GlTF
      * An array of accessors. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A typed view into a buffer view that contains raw binary 
-     * data. (optional) 
+     * &nbsp;&nbsp;A typed view into a bufferView. A bufferView contains raw 
+     * binary data. An accessor provides a typed view into a bufferView or a 
+     * subset of a bufferView similar to how WebGL's `vertexAttribPointer()` 
+     * defines an attribute in a buffer. (optional) 
      * 
      * @param accessors The accessors to set
      * @throws IllegalArgumentException If the given value does not meet
@@ -369,8 +374,10 @@ public class GlTF
      * An array of accessors. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A typed view into a buffer view that contains raw binary 
-     * data. (optional) 
+     * &nbsp;&nbsp;A typed view into a bufferView. A bufferView contains raw 
+     * binary data. An accessor provides a typed view into a bufferView or a 
+     * subset of a bufferView similar to how WebGL's `vertexAttribPointer()` 
+     * defines an attribute in a buffer. (optional) 
      * 
      * @return The accessors
      * 
@@ -716,8 +723,8 @@ public class GlTF
      * An array of cameras. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A camera's projection. A node **MAY** reference a camera 
-     * to apply a transform to place the camera in the scene. (optional) 
+     * &nbsp;&nbsp;A camera's projection. A node can reference a camera to 
+     * apply a transform to place the camera in the scene. (optional) 
      * 
      * @param cameras The cameras to set
      * @throws IllegalArgumentException If the given value does not meet
@@ -739,8 +746,8 @@ public class GlTF
      * An array of cameras. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A camera's projection. A node **MAY** reference a camera 
-     * to apply a transform to place the camera in the scene. (optional) 
+     * &nbsp;&nbsp;A camera's projection. A node can reference a camera to 
+     * apply a transform to place the camera in the scene. (optional) 
      * 
      * @return The cameras
      * 
@@ -803,8 +810,9 @@ public class GlTF
      * An array of images. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;Image data used to create a texture. Image **MAY** be 
-     * referenced by an URI (or IRI) or a buffer view index. (optional) 
+     * &nbsp;&nbsp;Image data used to create a texture. Image can be 
+     * referenced by URI or `bufferView` index. `mimeType` is required in the 
+     * latter case. (optional) 
      * 
      * @param images The images to set
      * @throws IllegalArgumentException If the given value does not meet
@@ -826,8 +834,9 @@ public class GlTF
      * An array of images. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;Image data used to create a texture. Image **MAY** be 
-     * referenced by an URI (or IRI) or a buffer view index. (optional) 
+     * &nbsp;&nbsp;Image data used to create a texture. Image can be 
+     * referenced by URI or `bufferView` index. `mimeType` is required in the 
+     * latter case. (optional) 
      * 
      * @return The images
      * 
@@ -975,8 +984,8 @@ public class GlTF
      * An array of meshes. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A set of primitives to be rendered. Its global transform 
-     * is defined by a node that references it. (optional) 
+     * &nbsp;&nbsp;A set of primitives to be rendered. A node can contain one 
+     * mesh. A node's transform places the mesh in the scene. (optional) 
      * 
      * @param meshes The meshes to set
      * @throws IllegalArgumentException If the given value does not meet
@@ -998,8 +1007,8 @@ public class GlTF
      * An array of meshes. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
-     * &nbsp;&nbsp;A set of primitives to be rendered. Its global transform 
-     * is defined by a node that references it. (optional) 
+     * &nbsp;&nbsp;A set of primitives to be rendered. A node can contain one 
+     * mesh. A node's transform places the mesh in the scene. (optional) 
      * 
      * @return The meshes
      * 
@@ -1063,15 +1072,15 @@ public class GlTF
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;A node in the node hierarchy. When the node contains 
-     * `skin`, all `mesh.primitives` **MUST** contain `JOINTS_0` and 
-     * `WEIGHTS_0` attributes. A node **MAY** have either a `matrix` or any 
-     * combination of `translation`/`rotation`/`scale` (TRS) properties. TRS 
-     * properties are converted to matrices and postmultiplied in the `T * R 
-     * * S` order to compose the transformation matrix; first the scale is 
-     * applied to the vertices, then the rotation, and then the translation. 
-     * If none are provided, the transform is the identity. When a node is 
-     * targeted for animation (referenced by an animation.channel.target), 
-     * `matrix` **MUST NOT** be present. (optional) 
+     * `skin`, all `mesh.primitives` must contain `JOINTS_0` and `WEIGHTS_0` 
+     * attributes. A node can have either a `matrix` or any combination of 
+     * `translation`/`rotation`/`scale` (TRS) properties. TRS properties are 
+     * converted to matrices and postmultiplied in the `T * R * S` order to 
+     * compose the transformation matrix; first the scale is applied to the 
+     * vertices, then the rotation, and then the translation. If none are 
+     * provided, the transform is the identity. When a node is targeted for 
+     * animation (referenced by an animation.channel.target), only TRS 
+     * properties may be present; `matrix` will not be present. (optional) 
      * 
      * @param nodes The nodes to set
      * @throws IllegalArgumentException If the given value does not meet
@@ -1094,15 +1103,15 @@ public class GlTF
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;A node in the node hierarchy. When the node contains 
-     * `skin`, all `mesh.primitives` **MUST** contain `JOINTS_0` and 
-     * `WEIGHTS_0` attributes. A node **MAY** have either a `matrix` or any 
-     * combination of `translation`/`rotation`/`scale` (TRS) properties. TRS 
-     * properties are converted to matrices and postmultiplied in the `T * R 
-     * * S` order to compose the transformation matrix; first the scale is 
-     * applied to the vertices, then the rotation, and then the translation. 
-     * If none are provided, the transform is the identity. When a node is 
-     * targeted for animation (referenced by an animation.channel.target), 
-     * `matrix` **MUST NOT** be present. (optional) 
+     * `skin`, all `mesh.primitives` must contain `JOINTS_0` and `WEIGHTS_0` 
+     * attributes. A node can have either a `matrix` or any combination of 
+     * `translation`/`rotation`/`scale` (TRS) properties. TRS properties are 
+     * converted to matrices and postmultiplied in the `T * R * S` order to 
+     * compose the transformation matrix; first the scale is applied to the 
+     * vertices, then the rotation, and then the translation. If none are 
+     * provided, the transform is the identity. When a node is targeted for 
+     * animation (referenced by an animation.channel.target), only TRS 
+     * properties may be present; `matrix` will not be present. (optional) 
      * 
      * @return The nodes
      * 

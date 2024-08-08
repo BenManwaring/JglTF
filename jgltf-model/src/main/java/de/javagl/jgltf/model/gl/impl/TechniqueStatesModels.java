@@ -33,7 +33,7 @@ import de.javagl.jgltf.impl.v1.TechniqueStatesFunctions;
 import de.javagl.jgltf.model.GltfConstants;
 import de.javagl.jgltf.model.gl.TechniqueStatesFunctionsModel;
 import de.javagl.jgltf.model.gl.TechniqueStatesModel;
-import de.javagl.jgltf.model.v1.gl.TechniqueStatesFunctionsModels;
+import de.javagl.jgltf.model.gl.impl.v1.DefaultTechniqueStatesFunctionsModelV1;
 
 /**
  * Methods to create {@link TechniqueStatesModel} instances
@@ -47,43 +47,23 @@ public class TechniqueStatesModels
      */
     public static TechniqueStatesModel createDefault()
     {
-        TechniqueStatesModel techniqueStatesModel = 
-            new DefaultTechniqueStatesModel(
-                createDefaultTechniqueStatesEnable(), 
-                createDefaultTechniqueStatesFunctions());
-        return techniqueStatesModel;
-    }
-    
-    /**
-     * Create the default {@link TechniqueStatesFunctionsModel}
-     * @return The {@link TechniqueStatesFunctionsModel}
-     */
-    public static TechniqueStatesFunctionsModel 
-        createDefaultTechniqueStatesFunctions()
-    {
-        TechniqueStatesFunctions functions = 
-            de.javagl.jgltf.model.v1.gl.Techniques
-                .createDefaultTechniqueStatesFunctions();
-        TechniqueStatesFunctionsModel techniqueStatesFunctionsModel =
-            TechniqueStatesFunctionsModels.create(functions);
-        return techniqueStatesFunctionsModel;
-    }
-    
-    /**
-     * Returns the default {@link TechniqueStatesModel#getEnable() enable}
-     * states 
-     * 
-     * @return The default enable states
-     */
-    public static List<Integer> createDefaultTechniqueStatesEnable()
-    {
+        // This implementation is backed by the V1 implementation of the
+        // technique states functions, but this will not be visible for
+        // the caller
         List<Integer> enable = Arrays.asList(
             GltfConstants.GL_DEPTH_TEST, 
             GltfConstants.GL_CULL_FACE
         );
-        return enable;
+        TechniqueStatesFunctions functions = 
+            de.javagl.jgltf.model.v1.gl.Techniques
+                .createDefaultTechniqueStatesFunctions();
+        TechniqueStatesFunctionsModel techniqueStatesFunctionsModel =
+            new DefaultTechniqueStatesFunctionsModelV1(functions);
+        TechniqueStatesModel techniqueStatesModel = 
+            new DefaultTechniqueStatesModel(
+                enable, techniqueStatesFunctionsModel);
+        return techniqueStatesModel;
     }
-    
     /**
      * Private constructor to prevent instantiation
      */

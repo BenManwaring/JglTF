@@ -53,11 +53,16 @@ public final class AnimationManager
          * a ping-pong fashion
          */
         PING_PONG,
-        
+
         /**
          * Indicates that the animations should be looped
          */
-        LOOP
+        LOOP,
+
+        /**
+         * Indicates that the animations should be looped in slow motion 1/10
+         */
+        LOOP_SLOWMO
     }
     
     /**
@@ -226,8 +231,10 @@ public final class AnimationManager
             {
                 float loopTimeS = currentTimeS % maxEndTimeS;
                 animation.update(loopTimeS);
-            }
-            else if (animationPolicy == AnimationPolicy.PING_PONG)
+            } else if (animationPolicy == AnimationPolicy.LOOP_SLOWMO) {
+                float loopTimeS = currentTimeS % maxEndTimeS;
+                animation.update(loopTimeS/10f); //slow motion 1/10 //TODO add global variable to change in runtime
+            } else if (animationPolicy == AnimationPolicy.PING_PONG)
             {
                 int interval = (int)(currentTimeS / maxEndTimeS);
                 float loopTimeS = currentTimeS % maxEndTimeS;

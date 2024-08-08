@@ -35,7 +35,7 @@ import de.javagl.jgltf.model.io.Buffers;
 /**
  * Implementation of a {@link ImageModel}
  */
-public class DefaultImageModel extends AbstractNamedModelElement
+public final class DefaultImageModel extends AbstractNamedModelElement
     implements ImageModel
 {
     /**
@@ -46,7 +46,7 @@ public class DefaultImageModel extends AbstractNamedModelElement
     /**
      * The MIME type of the image data in the buffer view model
      */
-    private String mimeType;
+    private final String mimeType;
     
     /**
      * The {@link BufferViewModel}
@@ -60,14 +60,19 @@ public class DefaultImageModel extends AbstractNamedModelElement
     
     /**
      * Creates a new instance
+     * 
+     * @param mimeType The MIME type
+     * @param bufferViewModel The {@link BufferViewModel}
      */
-    public DefaultImageModel()
+    public DefaultImageModel(
+        String mimeType, BufferViewModel bufferViewModel)
     {
-        // Default constructor
+        this.mimeType = mimeType;
+        this.bufferViewModel = bufferViewModel;
     }
     
     /**
-     * Set the URI
+     * Set the URI string of this image
      * 
      * @param uri The URI
      */
@@ -75,19 +80,9 @@ public class DefaultImageModel extends AbstractNamedModelElement
     {
         this.uri = uri;
     }
-    
-    /**
-     * Set the MIME type
-     * 
-     * @param mimeType The MIME type
-     */
-    public void setMimeType(String mimeType)
-    {
-        this.mimeType = mimeType;
-    }
 
     /**
-     * Set the {@link BufferViewModel} 
+     * Set the {@link BufferViewModel} that this image refers to
      * 
      * @param bufferViewModel The {@link BufferViewModel}
      */
@@ -97,7 +92,9 @@ public class DefaultImageModel extends AbstractNamedModelElement
     }
     
     /**
-     * Set the image data
+     * Set the data of this image. If the given data is <code>null</code>,
+     * then calls to {@link #getImageData()} will return the data of the
+     * {@link BufferViewModel} that was set with {@link #setBufferViewModel}
      * 
      * @param imageData The image data
      */

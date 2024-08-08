@@ -27,6 +27,7 @@
 package de.javagl.jgltf.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -194,6 +195,10 @@ public class GltfAnimations
                 return InterpolatorType.STEP;
             }
             
+            // TODO Support these interpolation types
+            case CATMULLROMSPLINE:
+            {
+            }
             case CUBICSPLINE:
             {
             }

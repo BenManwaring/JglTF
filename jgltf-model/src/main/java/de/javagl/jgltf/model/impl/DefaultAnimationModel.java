@@ -137,9 +137,8 @@ public class DefaultAnimationModel extends AbstractNamedModelElement
             this.sampler = Objects.requireNonNull(
                 sampler, "The sampler may not be null");
             this.nodeModel = nodeModel;
-            this.path = path;
-            //this.path = Objects.requireNonNull(
-            //    path, "The path may not be null");
+            this.path = Objects.requireNonNull(
+                path, "The path may not be null");
             
         }
         

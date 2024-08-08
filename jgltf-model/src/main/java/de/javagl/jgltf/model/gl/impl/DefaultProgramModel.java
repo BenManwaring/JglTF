@@ -26,9 +26,6 @@
  */
 package de.javagl.jgltf.model.gl.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 import de.javagl.jgltf.model.gl.ProgramModel;
@@ -52,26 +49,11 @@ public class DefaultProgramModel extends AbstractNamedModelElement
     private ShaderModel fragmentShaderModel;
     
     /**
-     * The attributes
-     */
-    private final List<String> attributes;
-    
-    /**
      * Default constructor
      */
     public DefaultProgramModel()
     {
-        this.attributes = new ArrayList<String>();
-    }
-    
-    /**
-     * Add the given attribute name to this program
-     * 
-     * @param attribute The attribute
-     */
-    public void addAttribute(String attribute)
-    {
-        attributes.add(attribute);
+        // Default constructor
     }
     
     /**
@@ -106,12 +88,6 @@ public class DefaultProgramModel extends AbstractNamedModelElement
     public ShaderModel getFragmentShaderModel()
     {
         return fragmentShaderModel;
-    }
-    
-    @Override
-    public List<String> getAttributes()
-    {
-        return Collections.unmodifiableList(attributes);
     }
 }
 

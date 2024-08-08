@@ -32,28 +32,28 @@ import de.javagl.jgltf.model.TextureModel;
 /**
  * Implementation of a {@link TextureModel}
  */
-public class DefaultTextureModel extends AbstractNamedModelElement
+public final class DefaultTextureModel extends AbstractNamedModelElement
     implements TextureModel
 {
     /**
      * The magnification filter constant
      */
-    private Integer magFilter;
+    private final Integer magFilter;
 
     /**
      * The minification filter constant
      */
-    private Integer minFilter;
+    private final Integer minFilter;
     
     /**
      * The wrapping constant for the S-direction
      */
-    private Integer wrapS;
+    private final int wrapS;
     
     /**
      * The wrapping constant for the T-direction
      */
-    private Integer wrapT;
+    private final int wrapT;
     
     /**
      * The {@link ImageModel}
@@ -62,14 +62,23 @@ public class DefaultTextureModel extends AbstractNamedModelElement
     
     /**
      * Creates a new instance
+     * 
+     * @param magFilter The optional magnification filter
+     * @param minFilter The optional minification filter
+     * @param wrapS The S-wrapping
+     * @param wrapT The T-wrapping
      */
-    public DefaultTextureModel()
+    public DefaultTextureModel(
+        Integer magFilter, Integer minFilter, int wrapS, int wrapT)
     {
-        // Default constructor
+        this.magFilter = magFilter;
+        this.minFilter = minFilter;
+        this.wrapS = wrapS;
+        this.wrapT = wrapT;
     }
     
     /**
-     * Set the {@link ImageModel} that backs this texture
+     * Set the {@link ImageModel}
      * 
      * @param imageModel The {@link ImageModel}
      */
@@ -83,65 +92,25 @@ public class DefaultTextureModel extends AbstractNamedModelElement
     {
         return magFilter;
     }
-    
-    /**
-     * Set the magnification filter
-     * 
-     * @param magFilter The filter
-     */
-    public void setMagFilter(Integer magFilter)
-    {
-        this.magFilter = magFilter;
-    }
 
     @Override
     public Integer getMinFilter()
     {
         return minFilter;
     }
-    
-    /**
-     * Set the minification filter
-     * 
-     * @param minFilter The filter
-     */
-    public void setMinFilter(Integer minFilter)
-    {
-        this.minFilter = minFilter;
-    }
 
     @Override
-    public Integer getWrapS()
+    public int getWrapS()
     {
         return wrapS;
     }
-    
-    /**
-     * Set the wrapping behavior in S-direction
-     * 
-     * @param wrapS The wrapping mode
-     */
-    public void setWrapS(Integer wrapS)
-    {
-        this.wrapS = wrapS;
-    }
 
     @Override
-    public Integer getWrapT()
+    public int getWrapT()
     {
         return wrapT;
     }
 
-    /**
-     * Set the wrapping behavior in T-direction
-     * 
-     * @param wrapT The wrapping mode
-     */
-    public void setWrapT(Integer wrapT)
-    {
-        this.wrapT = wrapT;
-    }
-    
     @Override
     public ImageModel getImageModel()
     {

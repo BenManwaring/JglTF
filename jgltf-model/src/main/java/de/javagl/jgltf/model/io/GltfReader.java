@@ -70,8 +70,7 @@ final class GltfReader
      */
     GltfReader()
     {
-        objectMapper = 
-            JacksonUtils.createObjectMapper(jsonErrorConsumer);
+        objectMapper = new ObjectMapper();
     }
     
     /**
@@ -80,7 +79,7 @@ final class GltfReader
      * 
      * @param jsonErrorConsumer The consumer
      */
-    void setJsonErrorConsumer(
+    public void setJsonErrorConsumer(
         Consumer<? super JsonError> jsonErrorConsumer)
     {
         this.jsonErrorConsumer = jsonErrorConsumer;

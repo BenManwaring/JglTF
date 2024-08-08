@@ -3,7 +3,7 @@
  * 
  * Do not modify this class. It is automatically generated
  * with JsonModelGen (https://github.com/javagl/JsonModelGen)
- * Copyright (c) 2016-2021 Marco Hutter - http://www.javagl.de
+ * Copyright (c) 2016 Marco Hutter - http://www.javagl.de
  */
 
 package de.javagl.jgltf.impl.v2;
@@ -13,8 +13,8 @@ import java.util.List;
 
 
 /**
- * A set of primitives to be rendered. Its global transform is defined by 
- * a node that references it. 
+ * A set of primitives to be rendered. A node can contain one mesh. A 
+ * node's transform places the mesh in the scene. 
  * 
  * Auto-generated for mesh.schema.json 
  * 
@@ -24,8 +24,8 @@ public class Mesh
 {
 
     /**
-     * An array of primitives, each defining geometry to be rendered. 
-     * (required)<br> 
+     * An array of primitives, each defining geometry to be rendered with a 
+     * material. (required)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;Geometry to be rendered with the given material. 
@@ -34,9 +34,7 @@ public class Mesh
      */
     private List<MeshPrimitive> primitives;
     /**
-     * Array of weights to be applied to the morph targets. The number of 
-     * array elements **MUST** match the number of morph targets. 
-     * (optional)<br> 
+     * Array of weights to be applied to the Morph Targets. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;The elements of this array (optional) 
@@ -45,8 +43,8 @@ public class Mesh
     private List<Float> weights;
 
     /**
-     * An array of primitives, each defining geometry to be rendered. 
-     * (required)<br> 
+     * An array of primitives, each defining geometry to be rendered with a 
+     * material. (required)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;Geometry to be rendered with the given material. 
@@ -69,8 +67,8 @@ public class Mesh
     }
 
     /**
-     * An array of primitives, each defining geometry to be rendered. 
-     * (required)<br> 
+     * An array of primitives, each defining geometry to be rendered with a 
+     * material. (required)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;Geometry to be rendered with the given material. 
@@ -128,9 +126,7 @@ public class Mesh
     }
 
     /**
-     * Array of weights to be applied to the morph targets. The number of 
-     * array elements **MUST** match the number of morph targets. 
-     * (optional)<br> 
+     * Array of weights to be applied to the Morph Targets. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;The elements of this array (optional) 
@@ -152,9 +148,7 @@ public class Mesh
     }
 
     /**
-     * Array of weights to be applied to the morph targets. The number of 
-     * array elements **MUST** match the number of morph targets. 
-     * (optional)<br> 
+     * Array of weights to be applied to the Morph Targets. (optional)<br> 
      * Minimum number of items: 1<br> 
      * Array elements:<br> 
      * &nbsp;&nbsp;The elements of this array (optional) 

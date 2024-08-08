@@ -26,8 +26,6 @@
  */
 package de.javagl.jgltf.model.gl;
 
-import java.util.List;
-
 import de.javagl.jgltf.model.NamedModelElement;
 
 /**
@@ -49,12 +47,5 @@ public interface ProgramModel extends NamedModelElement
      * @return The {@link ShaderModel}
      */
     ShaderModel getFragmentShaderModel();
-    
-    /**
-     * Returns an unmodifiable list of the program attribute names
-     * 
-     * @return The attributes
-     */
-    List<String> getAttributes();
 }
 

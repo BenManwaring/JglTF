@@ -1,7 +1,6 @@
 /**
- * Classes related to GL-based rendering, implemented for glTF 1.0
- * <br>
- * In most cases, these classes should not directly be used by clients.
+ * Classes related to the KHR_technique_webgl extension, for rendering
+ * a glTF asset with GL.
  */
 package de.javagl.jgltf.model.v1.gl;
 

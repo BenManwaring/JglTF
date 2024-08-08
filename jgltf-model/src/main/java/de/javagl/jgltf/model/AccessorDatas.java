@@ -102,7 +102,7 @@ public class AccessorDatas
      * @param bufferViewData The buffer view data that the accessor refers to
      * @param byteOffset The byte offset for the accessor
      * @param count The count (number of elements) for the accessor
-     * @param elementType The {@link ElementType}
+     * @param numComponentsPerElement The number of components per element.
      * For example, if the accessor type is <code>"VEC3"</code>, then this
      * will be 3
      * @param byteStride The optional byte stride for the accessor data
@@ -112,31 +112,31 @@ public class AccessorDatas
      */
     public static AccessorData create(
         int componentType, ByteBuffer bufferViewData, int byteOffset, 
-        int count, ElementType elementType, Integer byteStride)
+        int count, int numComponentsPerElement, Integer byteStride)
     {
         if (isByteType(componentType))
         {
             return new AccessorByteData(
                 componentType, bufferViewData, byteOffset, count, 
-                elementType, byteStride);
+                numComponentsPerElement, byteStride);
         }
         if (isShortType(componentType))
         {
             return new AccessorShortData(
                 componentType, bufferViewData, byteOffset, count, 
-                elementType, byteStride);
+                numComponentsPerElement, byteStride);
         }
         if (isIntType(componentType))
         {
             return new AccessorIntData(
                 componentType, bufferViewData, byteOffset, count, 
-                elementType, byteStride);
+                numComponentsPerElement, byteStride);
         }
         if (isFloatType(componentType))
         {
             return new AccessorFloatData(
                 componentType, bufferViewData, byteOffset, count, 
-                elementType, byteStride);
+                numComponentsPerElement, byteStride);
         }
         throw new IllegalArgumentException(
             "Not a valid component type: " + componentType);
@@ -325,7 +325,7 @@ public class AccessorDatas
             bufferViewByteBuffer,
             accessorModel.getByteOffset(),
             accessorModel.getCount(),
-            accessorModel.getElementType(),
+            accessorModel.getElementType().getNumComponents(),
             accessorModel.getByteStride());
     }
     
@@ -365,7 +365,7 @@ public class AccessorDatas
             bufferViewByteBuffer,
             accessorModel.getByteOffset(),
             accessorModel.getCount(),
-            accessorModel.getElementType(),
+            accessorModel.getElementType().getNumComponents(),
             accessorModel.getByteStride());
     }
     
@@ -404,7 +404,7 @@ public class AccessorDatas
             bufferViewByteBuffer,
             accessorModel.getByteOffset(),
             accessorModel.getCount(),
-            accessorModel.getElementType(),
+            accessorModel.getElementType().getNumComponents(),
             accessorModel.getByteStride());
     }
     
@@ -440,7 +440,7 @@ public class AccessorDatas
             bufferViewByteBuffer,
             accessorModel.getByteOffset(),
             accessorModel.getCount(),
-            accessorModel.getElementType(),
+            accessorModel.getElementType().getNumComponents(),
             accessorModel.getByteStride());
     }
 
@@ -450,24 +450,21 @@ public class AccessorDatas
      * 
      * @param byteOffset The byte offset 
      * @param numElements The number of elements
-     * @param numBytesPerElement The number of bytes per element
      * @param byteStridePerElement The byte stride
      * @param bufferCapacity The buffer capacity
      * @throws IllegalArgumentException If the given byte buffer does not
      * have a sufficient capacity
      */
     static void validateCapacity(int byteOffset, int numElements,
-        int numBytesPerElement, int byteStridePerElement, int bufferCapacity)
+        int byteStridePerElement, int bufferCapacity)
     {
-        int expectedCapacity = 
-            (numElements - 1) * byteStridePerElement + numBytesPerElement;
+        int expectedCapacity = numElements * byteStridePerElement;
         if (expectedCapacity > bufferCapacity)
         {
             throw new IllegalArgumentException(
                 "The accessorModel has an offset of " + byteOffset + " and " + 
                 numElements + " elements with a byte stride of " + 
-                byteStridePerElement + " and a size of " + numBytesPerElement + 
-                ", requiring " + expectedCapacity + 
+                byteStridePerElement + ", requiring " + expectedCapacity + 
                 " bytes, but the buffer view has only " + 
                 bufferCapacity + " bytes");
         }
